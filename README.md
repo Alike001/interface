@@ -160,6 +160,43 @@ bun run --cwd apps/s03-indexer start
 
 Run `bun run check:integration` before pushing to mirror the CI matrix.
 
+### Indexed history (SubQuery)
+
+Position and order history, executed fills, and fee/funding activity are read
+from the SubQuery indexer in `apps/s03-indexer`, not from the chain. The web app
+finds it through a single variable:
+
+| Variable | Scope | Default |
+|---|---|---|
+| `VITE_INDEXER_GRAPHQL_URL` | `apps/web` | unset |
+
+**No hosted indexer is deployed for testnet or mainnet yet**, so
+`apps/web/.env.testnet` and `apps/web/.env.mainnet` ship with the variable
+commented out. With it unset the indexer is disabled: the app starts normally,
+logs a single `Indexer disabled: …` warning, and the affected panels — Positions,
+Orders, Order history, Trades, Funding & Fees — say the data is unavailable
+instead of rendering empty tables.
+
+To develop against indexed data, run the stack locally:
+
+```bash
+# codegen + build + docker compose up (Postgres, indexer node, GraphQL engine).
+# Requires Docker.
+bun run indexer:dev
+```
+
+The GraphQL engine and its playground listen on
+[http://localhost:3000](http://localhost:3000) — the same port the web dev
+server uses — so run the web app elsewhere and point it at the indexer:
+
+```bash
+VITE_INDEXER_GRAPHQL_URL=http://localhost:3000 \
+  bun run --cwd apps/web dev -- --port 3001
+```
+
+See [`apps/s03-indexer/README.md`](./apps/s03-indexer/README.md) for the full
+indexer workflow.
+
 ### Running the development server
 
 ```bash

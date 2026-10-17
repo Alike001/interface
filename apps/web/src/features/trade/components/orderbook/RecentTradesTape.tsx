@@ -52,7 +52,17 @@ export function RecentTradesTape({ symbol }: Props) {
       </div>
 
       {/* ── Scrollable trades list ───────────────────────────────────────── */}
-      <div ref={containerRef} className="flex-1 overflow-y-auto px-2 py-1">
+      {/* Nothing inside the tape is focusable, so the scroll container itself
+          is the tab stop — otherwise the list cannot be scrolled by keyboard
+          (axe scrollable-region-focusable). A named region makes that stop
+          announce what it is. */}
+      <div
+        ref={containerRef}
+        role="region"
+        tabIndex={0}
+        aria-label={`Recent trades for ${symbol ?? "the selected market"}`}
+        className="flex-1 overflow-y-auto px-2 py-1 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+      >
         {isLoading && trades.length === 0 ? (
           <div className="flex flex-col gap-1.5 p-2" role="status" aria-label="Loading recent trades…">
             <Skeleton className="h-5 w-full" />

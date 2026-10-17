@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useLocation } from "@tanstack/react-router"
 import { useNetwork } from "../hooks/useNetwork"
 import { useWalletStore } from "../store/wallet-store"
@@ -14,7 +14,7 @@ export function NetworkMismatchBanner() {
 
   useEffect(() => {
     try {
-      if (typeof window !== "undefined" && sessionStorage) {
+      if (typeof window !== "undefined") {
         setDismissed(sessionStorage.getItem(SESSION_KEY) === "1")
       }
     } catch {

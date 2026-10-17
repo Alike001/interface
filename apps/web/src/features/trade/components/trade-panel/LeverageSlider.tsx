@@ -17,6 +17,7 @@ export function LeverageSlider({ min = 1, max = 50, step = 0.5, value, onChange 
         <Badge variant="secondary">{value}×</Badge>
       </div>
       <Slider
+        aria-label="Leverage"
         min={min}
         max={max}
         step={step}

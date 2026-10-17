@@ -33,6 +33,25 @@ All components are located in `src/components/` and exported through the package
 - **Spinner** - Busy indicator, hidden from assistive tech unless labelled
 - **LoadingButton** - Button that owns its pending state, spinner and `aria-busy`
 
+## Composing triggers
+
+Base UI trigger parts (`TooltipTrigger`, `PopoverTrigger`, `DialogTrigger`,
+`DropdownMenuTrigger`, …) render their own `<button>`. To use a custom element
+as the trigger, pass it through the `render` prop — passing it as a child nests
+a button inside a button, which breaks hydration and fails axe's
+`nested-interactive` rule:
+
+```tsx
+// ✗ <button><button>Hover me</button></button>
+<TooltipTrigger><Button>Hover me</Button></TooltipTrigger>
+
+// ✓ one button
+<TooltipTrigger render={<Button>Hover me</Button>} />
+```
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md#trigger-parts-pass-a-custom-element-through-render-never-as-a-child)
+for the full rule.
+
 ## Semantic tokens
 
 `src/styles/globals.css` defines the semantic colour roles every component draws

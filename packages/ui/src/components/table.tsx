@@ -1,3 +1,8 @@
+"use client"
+
+import * as React from "react"
+
+import { useOverflowEdges } from "@workspace/ui/hooks/use-overflow-edges"
 import { cn } from "@workspace/ui/lib/utils"
 
 /**
@@ -5,16 +10,57 @@ import { cn } from "@workspace/ui/lib/utils"
  *
  * `Table` wraps the `<table>` in its own horizontally scrollable container so
  * wide financial tables never push the page body sideways on mobile.
+ *
+ * A scroll container with no focusable content cannot be scrolled by keyboard
+ * (axe `scrollable-region-focusable`), so the container becomes a tab stop —
+ * but only while it actually overflows, so tables that fit do not litter the
+ * page with empty tab stops. Give the `<table>` an `aria-label` or
+ * `aria-labelledby` and the stop is announced as a named region; without a
+ * name it stays an unlabelled tab stop, because an anonymous `role="region"`
+ * is worse than none.
  */
 function Table({
   className,
   containerClassName,
   ...props
 }: React.ComponentProps<"table"> & { containerClassName?: string }) {
+  const [scrollable, setScrollable] = React.useState(false)
+  const { rootRef, viewportRef } = useOverflowEdges(
+    "horizontal",
+    React.useCallback(
+      (edges: { left: boolean; right: boolean }) =>
+        setScrollable(edges.left || edges.right),
+      []
+    )
+  )
+
+  // The container is both the measured root and the scrolling viewport.
+  const setContainer = React.useCallback(
+    (node: HTMLDivElement | null) => {
+      rootRef.current = node
+      viewportRef.current = node
+    },
+    [rootRef, viewportRef]
+  )
+
+  const ariaLabel = props["aria-label"]
+  const ariaLabelledBy = props["aria-labelledby"]
+  const labelled = Boolean(ariaLabel || ariaLabelledBy)
+
   return (
     <div
+      ref={setContainer}
       data-slot="table-container"
-      className={cn("w-full overflow-x-auto", containerClassName)}
+      role={scrollable && labelled ? "region" : undefined}
+      tabIndex={scrollable ? 0 : undefined}
+      aria-label={scrollable && labelled ? ariaLabel : undefined}
+      aria-labelledby={scrollable && labelled ? ariaLabelledBy : undefined}
+      className={cn(
+        "w-full overflow-x-auto",
+        scrollable &&
+          "focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none",
+        containerClassName
+      )}
     >
       <table
         data-slot="table"

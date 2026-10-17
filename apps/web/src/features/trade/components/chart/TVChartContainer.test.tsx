@@ -58,6 +58,16 @@ vi.mock("../../hooks/usePositions", () => ({
   usePositions: () => ({ data: mockPositions }),
 }))
 
+// The component also draws resting-order price lines. Without this the real
+// hook runs `useQuery` outside a QueryClientProvider and every test in this
+// file throws before rendering.
+const mockOrders: Array<Record<string, unknown>> = []
+
+vi.mock("../../hooks/useOrders", () => ({
+  useOrders: () => ({ data: mockOrders }),
+  hasFrozenOrders: () => false,
+}))
+
 // JSDOM lacks ResizeObserver / MutationObserver
 const mockObserverDisconnect = vi.fn()
 class ObserverStub {
@@ -137,8 +147,28 @@ describe("TVChartContainer", () => {
     mockCandles = SAMPLE_CANDLES
     render(<TVChartContainer {...defaultProps} />)
 
-    const chart = screen.getByRole("img", { name: /price chart for btc/i })
+    // Issue #858: the canvas is pannable and zoomable, so it must not be
+    // announced as a static image (axe nested-interactive).
+    const chart = screen.getByRole("region", { name: /price chart for btc/i })
     expect(chart).toBeInTheDocument()
+    expect(screen.queryByRole("img")).not.toBeInTheDocument()
+  })
+
+  it("labels the chart with the market name rather than the raw address", () => {
+    mockCandles = SAMPLE_CANDLES
+    render(
+      <TVChartContainer
+        symbol="CCFTOPHUPSUDO2MB4X5D3XYJ2HRJ7NJPAW4UVPAVN7ZLE63EZLSMXDUO"
+        period="5m"
+        marketLabel="BTC/USD"
+      />,
+    )
+
+    expect(
+      screen.getByRole("region", { name: "Price chart for BTC/USD" }),
+    ).toBeInTheDocument()
+    expect(screen.getByText(/5m chart for BTC\/USD/)).toBeInTheDocument()
+    expect(screen.queryByText(/CCFTOPHUPSUDO/)).not.toBeInTheDocument()
   })
 
   it("describes the chart as linked from the summary", () => {

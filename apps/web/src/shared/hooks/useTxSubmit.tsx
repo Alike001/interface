@@ -1,8 +1,8 @@
-import { useCallback, useState, useRef } from "react"
+import { useCallback, useRef, useState } from "react"
 import { toast } from "@workspace/ui/components/toast"
+import { useTxFeedback } from "./useTxFeedback"
 import { sendAndPoll } from "@/lib/tx-builder"
 import { explorerTxUrl } from "@/app/config/network"
-import { useTxFeedback } from "./useTxFeedback"
 
 export type SubmitTxOptions = {
   loadingMessage: string
@@ -119,7 +119,7 @@ export function useTxSubmit() {
       const attemptId = `txn-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
       attemptIdRef.current = attemptId
 
-      const attempt = feedback.createAttempt(attemptId)
+      feedback.createAttempt(attemptId)
 
       // #733: Prevent duplicate submission with attempt tracking
       if (submitInProgressRef.current) {

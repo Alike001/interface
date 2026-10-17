@@ -414,6 +414,31 @@ describe("RecentTradesTape", () => {
     })
   })
 
+  // Issue #858: nothing inside the tape is focusable, so the scroll container
+  // itself has to be a named tab stop or the list cannot be reached or
+  // scrolled by keyboard (axe scrollable-region-focusable).
+  describe("scroll region accessibility (#858)", () => {
+    it("exposes the scrollable list as a focusable, named region", () => {
+      render(<RecentTradesTape symbol="TWBTC" />)
+
+      const region = screen.getByRole("region", {
+        name: "Recent trades for TWBTC",
+      })
+      expect(region).toHaveAttribute("tabindex", "0")
+      expect(region.className).toContain("overflow-y-auto")
+    })
+
+    it("names the region even without a selected market", () => {
+      render(<RecentTradesTape symbol={undefined} />)
+
+      expect(
+        screen.getByRole("region", {
+          name: "Recent trades for the selected market",
+        }),
+      ).toBeInTheDocument()
+    })
+  })
+
   describe("symbol changes", () => {
     it("updates when symbol prop changes", () => {
       const { rerender } = render(<RecentTradesTape symbol="TWBTC" />)

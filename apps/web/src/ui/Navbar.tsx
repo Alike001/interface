@@ -13,6 +13,7 @@ import {
   useMobileMenu,
 } from "./nav/primitives"
 import { ConnectButton } from "@/features/wallet/components/ConnectButton"
+import { NetworkHealthIndicator } from "@/features/wallet/components/NetworkHealthIndicator"
 import { WhatsNew } from "@/features/changelog/components/WhatsNew"
 import { WhatsNewDot } from "@/features/changelog/components/WhatsNewDot"
 import { useWhatsNewIndicator } from "@/features/changelog/whats-new"
@@ -106,6 +107,7 @@ export function Navbar({ variant }: Props) {
         {/* Actions */}
         <div className="flex min-w-0 shrink-0 items-center gap-1.5 sm:gap-2">
           {isApp && <WhatsNew />}
+          {isApp && <NetworkHealthIndicator />}
           <ThemeToggle />
           <ConnectButton />
           {!isApp && (

@@ -57,6 +57,8 @@ export const useLayoutPreferencesStore = create<LayoutPreferencesState>()(
     }),
     {
       name: "trade-layout-preferences",
+      version: 1,
+      migrate: (persisted) => persisted,
       // Re-clamp on read so a layout saved on a large screen (or an older
       // build with different bounds) can't restore out-of-bounds on a
       // smaller viewport. The component further clamps chartRowHeight

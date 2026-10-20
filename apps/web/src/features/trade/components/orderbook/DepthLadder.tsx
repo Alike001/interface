@@ -3,7 +3,7 @@ import { cn } from "@workspace/ui/lib/utils"
 import { useOrderBook } from "../../hooks/useOrderBook"
 import { useRecentTrades } from "../../hooks/useRecentTrades"
 import type { OrderBookLevel } from "../../hooks/useOrderBook"
-import { formatUsd } from "@/shared/lib/format"
+import { formatToken, formatUsd } from "@/shared/lib/format"
 
 type Props = {
   symbol: string | undefined
@@ -104,10 +104,7 @@ function DepthRow({ level, side, compact, onHover }: RowProps) {
         role="cell"
         className="relative z-10 w-[30%] shrink-0 px-1 text-right tabular-nums text-foreground/80"
       >
-        {level.size.toLocaleString(undefined, {
-          minimumFractionDigits: 3,
-          maximumFractionDigits: 4,
-        })}
+        {formatToken(level.size, "", { decimals: 4, minDecimals: 3 }).trim()}
       </span>
 
       {/* cumulative total */}
@@ -115,10 +112,7 @@ function DepthRow({ level, side, compact, onHover }: RowProps) {
         role="cell"
         className="relative z-10 flex-1 px-2 text-right tabular-nums text-muted-foreground"
       >
-        {level.total.toLocaleString(undefined, {
-          minimumFractionDigits: 3,
-          maximumFractionDigits: 4,
-        })}
+        {formatToken(level.total, "", { decimals: 4, minDecimals: 3 }).trim()}
       </span>
     </div>
   )
@@ -151,10 +145,7 @@ function DepthInspection({
         <div className="flex justify-between gap-4">
           <span className="text-muted-foreground">Cumulative Qty:</span>
           <span className="text-foreground font-medium">
-            {level.total.toLocaleString(undefined, {
-              minimumFractionDigits: 4,
-              maximumFractionDigits: 6,
-            })}
+            {formatToken(level.total, "", { decimals: 6, minDecimals: 4 }).trim()}
           </span>
         </div>
         <div className="flex justify-between gap-4">

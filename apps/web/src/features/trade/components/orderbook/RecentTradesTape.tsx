@@ -12,6 +12,8 @@ import {
 } from "@workspace/ui/components/table"
 import { useRecentTrades } from "../../hooks/useRecentTrades"
 import { formatUsd } from "@/shared/lib/format"
+import { RelativeTime } from "@/shared/components/RelativeTime"
+import { formatToken } from "@/shared/lib/format"
 
 type Props = {
   symbol: string | undefined
@@ -84,10 +86,10 @@ export function RecentTradesTape({ symbol }: Props) {
                     {formatUsd(trade.price, { decimals: 4 })}
                   </TableCell>
                   <TableCell align="right" className="text-muted-foreground">
-                    {trade.qty.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
+                    {formatToken(trade.qty, "", { decimals: 4, minDecimals: 2 }).trim()}
                   </TableCell>
                   <TableCell align="right" className="text-muted-foreground/80">
-                    {new Date(trade.time).toLocaleTimeString()}
+                    <RelativeTime value={trade.time} tick="second" />
                   </TableCell>
                   <TableCell align="right">
                     {trade.side === "buy" ? (

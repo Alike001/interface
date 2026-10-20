@@ -15,6 +15,7 @@ import type { OrderLifecycleStage } from "../../lib/order-lifecycle"
 import type { Column } from "@workspace/ui/components/data-table"
 import type { OrderWithIndexer } from "../../hooks/useOrdersWithIndexer"
 import type { OrderKey } from "@/lib/contracts"
+import { RelativeTime } from "@/shared/components/RelativeTime"
 
 function toOrderKey(order: OrderWithIndexer): OrderKey {
   return order.key
@@ -138,7 +139,7 @@ export function OrdersList() {
       header: "Created",
       accessor: (o) => (
         <span className="text-muted-foreground">
-          {new Date(o.updatedAt).toLocaleTimeString()}
+          <RelativeTime value={o.updatedAt} tick="second" />
         </span>
       ),
     },

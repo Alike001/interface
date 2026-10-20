@@ -14,16 +14,16 @@ export const containerClass =
   "mx-auto flex min-w-0 items-center justify-between gap-2 px-3 sm:px-6 lg:px-8"
 
 export const desktopLinkClass =
-  "relative inline-flex h-8 items-center rounded-md px-2 text-13-5 text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
+  "relative inline-flex min-h-11 items-center rounded-md px-2 text-13-5 text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
 
 export const desktopActiveLinkClass =
-  "relative inline-flex h-8 items-center rounded-md bg-primary/10 px-2 text-13-5 font-medium text-foreground after:absolute after:inset-x-2 after:-bottom-[13px] after:h-0.5 after:rounded-full after:bg-primary"
+  "relative inline-flex min-h-11 items-center rounded-md bg-primary/10 px-2 text-13-5 font-medium text-foreground after:absolute after:inset-x-2 after:-bottom-[13px] after:h-0.5 after:rounded-full after:bg-primary"
 
 export const mobileLinkClass =
-  "block rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
+  "block min-h-11 rounded-md px-3 py-3 text-sm text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
 
 export const mobileActiveLinkClass =
-  "block rounded-md bg-primary/10 px-3 py-2 text-sm font-medium text-foreground ring-1 ring-primary/20"
+  "block min-h-11 rounded-md bg-primary/10 px-3 py-3 text-sm font-medium text-foreground ring-1 ring-primary/20"
 
 // ── Logo ──
 
@@ -97,7 +97,7 @@ export function HamburgerButton({
       ref={buttonRef}
       variant="ghost"
       size="icon"
-      className={className}
+      className={`min-h-11 min-w-11 ${className}`}
       aria-label={open ? "Close menu" : "Open menu"}
       aria-expanded={open}
       aria-controls={controls}

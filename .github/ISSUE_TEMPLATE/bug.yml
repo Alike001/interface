@@ -1,0 +1,26 @@
+name: Bug report
+description: Report a reproducible problem in the interface
+title: "[Bug]: "
+labels: ["type:bug"]
+body:
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include the route, inputs, and expected versus actual behavior.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser, OS, viewport, and commit.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Add logs, screenshots, or a minimal reproduction.
+    validations:
+      required: true

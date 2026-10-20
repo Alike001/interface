@@ -1,0 +1,18 @@
+name: Design proposal
+description: Propose a user-interface or interaction design change
+title: "[Design]: "
+labels: ["type:design"]
+body:
+  - type: textarea
+    id: context
+    attributes:
+      label: Context and goals
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: Include states, responsive behavior, accessibility, and error cases.
+    validations:
+      required: true

@@ -136,6 +136,24 @@ describe("ClosePositionDialog", () => {
   })
 
   describe("confirm callback payload", () => {
+    it("supports percentage presets for partial close", async () => {
+      const onConfirm = vi.fn()
+      const user = userEvent.setup()
+      render(
+        <ClosePositionDialog
+          position={createMockPosition()}
+          open={true}
+          onClose={vi.fn()}
+          onConfirm={onConfirm}
+        />,
+      )
+      await user.click(screen.getByRole("button", { name: /Partial close/i }))
+      await user.click(screen.getByRole("button", { name: "Close 25% of position" }))
+      expect(screen.getByDisplayValue("12500.00")).toBeInTheDocument()
+      await user.click(screen.getByRole("button", { name: "Confirm Close" }))
+      expect(onConfirm).toHaveBeenCalledWith({ isFull: false, sizeDeltaUsd: 12_500 })
+    })
+
     it("calls onConfirm with full payload on full close", async () => {
       const onConfirm = vi.fn()
       const user = userEvent.setup()

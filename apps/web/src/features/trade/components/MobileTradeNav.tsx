@@ -31,7 +31,7 @@ export function MobileTradeNav({ active, onChange, className }: MobileTradeNavPr
       aria-label="Trading panels"
       className={cn(
         "flex shrink-0 border-t border-border bg-background",
-        "pb-[env(safe-area-inset-bottom)]",
+        "pb-[max(0.75rem,env(safe-area-inset-bottom))]",
         className
       )}
     >

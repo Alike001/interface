@@ -9,7 +9,7 @@ import type { VariantProps } from "class-variance-authority"
 // ---------------------------------------------------------------------------
 
 const emptyStateVariants = cva(
-  "flex flex-col items-center justify-center text-center",
+  "flex flex-col items-center justify-center text-center animate-in fade-in duration-500",
   {
     variants: {
       variant: {
@@ -26,7 +26,7 @@ const emptyStateVariants = cva(
 )
 
 const iconWrapperVariants = cva(
-  "flex items-center justify-center rounded-full text-muted-foreground",
+  "flex items-center justify-center rounded-full text-muted-foreground animate-in fade-in zoom-in-75 duration-300",
   {
     variants: {
       variant: {

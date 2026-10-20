@@ -1,3 +1,4 @@
+import { LiveIndicator } from "@workspace/ui/components/live-indicator"
 import { useEffect, useRef, useState } from "react"
 import { cn } from "@workspace/ui/lib/utils"
 import { useOrderBook } from "../../hooks/useOrderBook"
@@ -307,30 +308,7 @@ export function DepthLadder({ symbol, compact = false }: Props) {
           {symbol ?? "Market"} Depth
         </span>
         <div className="flex items-center gap-2">
-          {status === "connected" && (
-            <span className="inline-flex items-center gap-1 font-mono text-[10px] text-green-500">{/* ds-allow: status font size */}
-              <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-              Live
-            </span>
-          )}
-          {status === "connecting" && (
-            <span className="inline-flex items-center gap-1 font-mono text-[10px] text-amber-500">{/* ds-allow: status font size */}
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
-              Connecting…
-            </span>
-          )}
-          {status === "polling" && (
-            <span className="inline-flex items-center gap-1 font-mono text-[10px] text-amber-500">{/* ds-allow: status font size */}
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-              Polling (Fallback)
-            </span>
-          )}
-          {(status === "disconnected" || status === "error") && (
-            <span className="inline-flex items-center gap-1 font-mono text-[10px] text-destructive">{/* ds-allow: status font size */}
-              <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
-              Disconnected
-            </span>
-          )}
+          <LiveIndicator status={status} />
         </div>
       </div>
 

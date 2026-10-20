@@ -29,7 +29,8 @@ All components are located in `src/components/` and exported through the package
 - **Card** - Surface primitive (`default`, `muted`, `dashed`, `plain`) with header/content/footer slots
 - **Table** - Data-table primitives that scroll horizontally instead of widening the page
 - **Alert** - Status messaging (`info`, `success`, `warning`, `danger`, `muted`) with the right ARIA role
-- **LoadingState / EmptyState / ErrorState** - Shared list and table state treatments
+- **EmptyState** - Single empty-state primitive (`compact`/`page`) with optional icon, description, and primary/secondary actions
+- **LoadingState / ErrorState** - Shared list and table state treatments (`states` also re-exports `EmptyState`)
 - **Spinner** - Busy indicator, hidden from assistive tech unless labelled
 - **LoadingButton** - Button that owns its pending state, spinner and `aria-busy`
 

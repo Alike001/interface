@@ -80,7 +80,7 @@ export function TVChart({ symbol, onSelectToken }: Props) {
               transform: `translateX(${indicatorStyle.left}px)`,
               width: indicatorStyle.width,
             }}
-            className="absolute top-1.5 bottom-1.5 left-0 rounded bg-primary transition-[transform,width] duration-base ease-spring-smooth motion-reduce:transition-none pointer-events-none"
+            className="absolute top-1.5 bottom-1.5 left-0 rounded-sm bg-primary transition-[transform,width] duration-base ease-spring-smooth motion-reduce:transition-none pointer-events-none"
           />
         )}
         {PERIODS.map((p) => (
@@ -95,7 +95,7 @@ export function TVChart({ symbol, onSelectToken }: Props) {
             aria-label={`${p} timeframe`}
             title={`Switch to ${p} chart (${p === period ? "current" : ""})`}
             className={cn(
-              "relative z-10 rounded px-2 py-0.5 font-mono text-xs transition-colors duration-fast ease-spring-snappy",
+              "relative z-10 rounded-sm px-2 py-0.5 font-mono text-xs transition-colors duration-fast ease-spring-snappy",
               "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring",
               period === p
                 ? "text-primary-foreground font-semibold"

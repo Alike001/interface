@@ -436,7 +436,7 @@ export function DesignSystemPage() {
               <select
                 value={theme}
                 onChange={(e) => setTheme(e.target.value as "light" | "dark" | "system")}
-                className="rounded border border-border bg-background px-2 py-1 text-sm"
+                className="rounded-sm border border-border bg-background px-2 py-1 text-sm"
               >
                 <option value="light">Light</option>
                 <option value="dark">Dark</option>
@@ -445,7 +445,7 @@ export function DesignSystemPage() {
               <select
                 value={viewport}
                 onChange={(e) => setViewport(e.target.value as "mobile" | "tablet" | "desktop")}
-                className="rounded border border-border bg-background px-2 py-1 text-sm"
+                className="rounded-sm border border-border bg-background px-2 py-1 text-sm"
               >
                 <option value="mobile">Mobile</option>
                 <option value="tablet">Tablet</option>

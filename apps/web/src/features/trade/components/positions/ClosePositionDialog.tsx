@@ -76,7 +76,7 @@ export function ClosePositionDialog({ position, open, onClose, onConfirm }: Prop
             <button
               type="button"
               onClick={() => setCloseType("full")}
-              className={`flex-1 rounded px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`flex-1 rounded-sm px-3 py-1.5 text-xs font-medium transition-colors ${
                 closeType === "full"
                   ? "bg-muted text-foreground"
                   : "text-muted-foreground hover:text-foreground"
@@ -87,7 +87,7 @@ export function ClosePositionDialog({ position, open, onClose, onConfirm }: Prop
             <button
               type="button"
               onClick={() => setCloseType("partial")}
-              className={`flex-1 rounded px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`flex-1 rounded-sm px-3 py-1.5 text-xs font-medium transition-colors ${
                 closeType === "partial"
                   ? "bg-muted text-foreground"
                   : "text-muted-foreground hover:text-foreground"

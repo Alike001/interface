@@ -148,7 +148,7 @@ ToolbarGroup.displayName = "Toolbar.Group"
  * ──────────────────────────────────────────────────────────────────────────── */
 
 const toolbarButtonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center rounded border border-transparent text-xs font-medium whitespace-nowrap transition-colors outline-none select-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5",
+  "inline-flex shrink-0 items-center justify-center rounded-sm border border-transparent text-xs font-medium whitespace-nowrap transition-colors outline-none select-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5",
   {
     variants: {
       variant: {

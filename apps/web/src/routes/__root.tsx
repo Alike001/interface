@@ -9,6 +9,9 @@ import { ToastProvider } from "@workspace/ui/components/toast"
 import { TooltipProvider } from "@workspace/ui/components/tooltip"
 import { DensityProvider } from "@workspace/ui/components/density-provider"
 import appCss from "@workspace/ui/globals.css?url"
+import geistLatinFont from "@fontsource-variable/geist/files/geist-latin-wght-normal.woff2?url"
+import { ENV } from "../app/config/env"
+import { buildResourceHints } from "../shared/lib/resource-hints"
 import { AppProviders } from "../app/providers"
 import { SITE_NAME, SITE_URL, SOCIAL_URLS } from "../shared/lib/site-identity"
 import { RouteAnnouncer } from "../shared/components/RouteAnnouncer"
@@ -130,9 +133,21 @@ export const Route = createRootRoute({
       // ── Canonical ───────────────────────────────────────────────
       { rel: "canonical", href: SITE_URL },
 
-      // ── DNS Prefetch ────────────────────────────────────────────
-      { rel: "dns-prefetch", href: "//indexer.example.com" },
-      { rel: "dns-prefetch", href: "//rpc.example.com" },
+      // ── Connection hints (#929) ─────────────────────────────────
+      ...buildResourceHints({
+        rpcUrl: ENV.RPC_URL,
+        horizonUrl: ENV.HORIZON_URL,
+        pythHermesUrl: ENV.PYTH_HERMES_URL,
+      }),
+
+      // ── Fonts (#930): only the Geist face used above the fold ──
+      {
+        rel: "preload",
+        href: geistLatinFont,
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
+      },
 
       // ── App CSS ─────────────────────────────────────────────────
       { rel: "stylesheet", href: appCss },

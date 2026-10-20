@@ -397,7 +397,7 @@ export function ConfirmationDialog({
                 </p>
               )}
               {sidecarOrders.length > 0 && (
-                <div className="min-w-0 rounded border border-border p-2">
+                <div className="min-w-0 rounded-sm border border-border p-2">
                   <p className="mb-1 text-xs font-medium">
                     TP/SL sidecar orders
                   </p>

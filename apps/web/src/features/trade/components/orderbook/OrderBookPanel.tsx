@@ -42,7 +42,7 @@ export function OrderBookPanel({ symbol, verifiedDepth, activeMarketId, onSeedLi
           <button
             type="button"
             onClick={() => setOrderbookView("book")}
-            className={`rounded px-2 py-1 font-mono text-xs font-semibold transition-colors ${
+            className={`rounded-sm px-2 py-1 font-mono text-xs font-semibold transition-colors ${
               orderbookView === "book"
                 ? "bg-primary/10 text-primary"
                 : "text-muted-foreground hover:text-foreground"
@@ -55,7 +55,7 @@ export function OrderBookPanel({ symbol, verifiedDepth, activeMarketId, onSeedLi
           <button
             type="button"
             onClick={() => setOrderbookView("trades")}
-            className={`rounded px-2 py-1 font-mono text-xs font-semibold transition-colors ${
+            className={`rounded-sm px-2 py-1 font-mono text-xs font-semibold transition-colors ${
               orderbookView === "trades"
                 ? "bg-primary/10 text-primary"
                 : "text-muted-foreground hover:text-foreground"
@@ -68,7 +68,7 @@ export function OrderBookPanel({ symbol, verifiedDepth, activeMarketId, onSeedLi
           <button
             type="button"
             onClick={() => setOrderbookView("chart")}
-            className={`rounded px-2 py-1 font-mono text-xs font-semibold transition-colors ${
+            className={`rounded-sm px-2 py-1 font-mono text-xs font-semibold transition-colors ${
               orderbookView === "chart"
                 ? "bg-primary/10 text-primary"
                 : "text-muted-foreground hover:text-foreground"

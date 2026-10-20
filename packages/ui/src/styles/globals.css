@@ -1,11 +1,44 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
-@import "@fontsource-variable/geist-mono";
-@import "@fontsource-variable/archivo";
-@import "@fontsource/space-mono/400.css";
-@import "@fontsource/space-mono/700.css";
+@import "@fontsource/space-mono/latin-400.css";
+@import "@fontsource/space-mono/latin-700.css";
+
+/*
+ * Self-hosted fonts, subset to Latin (#930).
+ *
+ * The packages' default stylesheets declare every script subset (latin-ext,
+ * cyrillic, vietnamese, ...), and the bundler emits a woff2 for each. The UI
+ * ships English-only, so only the Latin face of each family is declared here,
+ * with the same `unicode-range` fontsource uses, so a glyph outside the range
+ * falls back to the system stack instead of pulling a second file. Space Mono
+ * above is already imported from its Latin-only stylesheets. The Geist face is preloaded
+ * from the root route's <head>.
+ */
+@font-face {
+    font-family: 'Geist Variable';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 100 900;
+    src: url(../../node_modules/@fontsource-variable/geist/files/geist-latin-wght-normal.woff2) format('woff2-variations');
+    unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face {
+    font-family: 'Geist Mono Variable';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 100 900;
+    src: url(../../node_modules/@fontsource-variable/geist-mono/files/geist-mono-latin-wght-normal.woff2) format('woff2-variations');
+    unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face {
+    font-family: 'Archivo Variable';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 100 900;
+    src: url(../../node_modules/@fontsource-variable/archivo/files/archivo-latin-wght-normal.woff2) format('woff2-variations');
+    unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
 
 @custom-variant dark (&:is(.dark *));
 @source "../../../apps/**/*.{ts,tsx}";
@@ -99,13 +132,36 @@
      * - xl (0.75rem / 12px):  Large cards, feature panels, section containers
      * - full (9999px):        Pills, avatar badges, status indicators (fully rounded)
      *
-     * Usage: rounded-sm, rounded-md, rounded-lg, rounded-xl, rounded-full
+     * Usage: rounded-sm, rounded-md, rounded-lg, rounded-xl, rounded-full.
+     * Bare `rounded` is not part of the scale (it resolves to the same 4px as
+     * `rounded-sm`); always name the step.
      */
     --radius-sm: 0.25rem;   /* 4px  - buttons, inputs, badges, tabs */
     --radius-md: 0.375rem;  /* 6px  - dropdowns, selects, chips */
     --radius-lg: 0.5rem;    /* 8px  - cards, panels, modals */
     --radius-xl: 0.75rem;   /* 12px - large cards, feature sections */
     --radius-full: 9999px;  /* Fully rounded - pills, avatars, indicators */
+
+    /*
+     * Elevation scale (#921).
+     *
+     * Five named steps, declared explicitly (values match Tailwind's
+     * defaults, so adopting the scale changes no pixels) so elevation is a
+     * documented token rather than an implicit framework default.
+     * Always pair a step with the layer it belongs to:
+     * - xs: resting controls (switch/checkbox/radio track, active tab)
+     * - sm: raised-in-place controls (switch thumb, selected segment)
+     * - md: tooltips, small popovers, dropdown panels
+     * - lg: toasts, sheets, floating panels over content
+     * - xl: modals and full dialogs
+     * Usage: shadow-xs, shadow-sm, shadow-md, shadow-lg, shadow-xl. Bare
+     * `shadow` and arbitrary `shadow-[...]` values are not part of the scale.
+     */
+    --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
     
     --font-sans: 'Geist Variable', sans-serif;
     --font-mono: 'Geist Mono Variable', ui-monospace, monospace;

@@ -268,7 +268,7 @@ export function CollateralDialog({ position, mode, open, onClose, onSubmit }: Pr
             <p className="text-xs font-medium text-red-500">{validationError}</p>
           )}
           {errorMsg && (
-            <p className="text-xs font-medium text-amber-500 bg-amber-500/10 border border-amber-500/30 rounded p-2">
+            <p className="text-xs font-medium text-amber-500 bg-amber-500/10 border border-amber-500/30 rounded-sm p-2">
               Warning: {errorMsg}
             </p>
           )}

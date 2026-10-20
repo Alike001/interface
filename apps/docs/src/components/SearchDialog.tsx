@@ -97,7 +97,7 @@ export function SearchDialog({ isOpen, onClose, onSearch, initialQuery = "", cla
           <button
             type="button"
             onClick={onClose}
-            className="px-2.5 py-1 text-xs rounded border border-border text-text-secondary hover:text-text-primary"
+            className="px-2.5 py-1 text-xs rounded-sm border border-border text-text-secondary hover:text-text-primary"
           >
             Esc
           </button>

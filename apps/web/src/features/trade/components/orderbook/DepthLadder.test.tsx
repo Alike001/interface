@@ -431,7 +431,7 @@ describe("DepthLadder", () => {
       it("sets a bounded width and animates depth changes smoothly", () => {
       const { container } = render(<DepthLadder symbol="TWBTC" />)
 
-      const depthBars = Array.from(container.querySelectorAll("[aria-hidden=\\"true\\"]"))
+      const depthBars = Array.from(container.querySelectorAll("[aria-hidden=\"true\"]"))
         .filter((element) => element.className.toString().includes("transition-[width]"))
 
       expect(depthBars).toHaveLength(4)

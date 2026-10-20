@@ -53,7 +53,19 @@ describe("RecentTradesTape", () => {
   })
 
   beforeEach(() => {
+    // jsdom has no matchMedia; animated rows use reduced-motion detection.
+    vi.stubGlobal("matchMedia", vi.fn().mockImplementation(() => ({
+      matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn(),
+      addListener: vi.fn(), removeListener: vi.fn(),
+    })))
     mockUseRecentTrades.mockReturnValue(createMockResult())
+  })
+
+  it("virtualizes large trade histories rather than mounting every row", () => {
+    const items = Array.from({ length: 400 }, (_, i) => createMockTrade(String(i), { price: 50000 + i }))
+    mockUseRecentTrades.mockReturnValue(createMockResult({ trades: items }))
+    render(<RecentTradesTape symbol="TWBTC" />)
+    expect(screen.getAllByRole("row").length).toBeLessThanOrEqual(62)
   })
 
   describe("rendering and layout", () => {

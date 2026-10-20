@@ -54,12 +54,26 @@ export function useOrderBook(symbol: string | undefined): OrderBookState {
     }
 
     const shared = marketSubscriptionManager.getOrCreate(symbol)
+    let frame: number | null = null
+    let latest: OrderBookState | null = null
     const unsubscribe = shared.subscribeBook((next) => {
-      setState(next)
+      latest = next
+      if (frame !== null) return
+      if (typeof requestAnimationFrame === "undefined") {
+        setState(next)
+        latest = null
+        return
+      }
+      frame = requestAnimationFrame(() => {
+        frame = null
+        if (latest) setState(latest)
+        latest = null
+      })
     })
 
     return () => {
       unsubscribe()
+      if (frame !== null) cancelAnimationFrame(frame)
     }
   }, [symbol])
 

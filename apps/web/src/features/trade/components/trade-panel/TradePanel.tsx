@@ -25,6 +25,7 @@ import { TradeInfoRows } from "./TradeInfoRows"
 import { ConfirmationDialog } from "./ConfirmationDialog"
 import { ApplyReferralCodePrompt } from "./ApplyReferralCodePrompt"
 import { LeverageSlider } from "./LeverageSlider"
+import { SlippageTolerancePopover } from "./SlippageTolerancePopover"
 import type { TradeMode, TradeType, useTradeState } from "../../hooks/useTradeState"
 import { explorerTxUrl } from "@/app/config/network"
 import { NumberInput } from "@/shared/components/NumberInput"
@@ -290,18 +291,10 @@ export function TradePanel({ trade }: TradePanelProps) {
           <div className="mt-3 space-y-3">
             <div className="space-y-1">
               <label className="text-xs text-muted-foreground">Slippage tolerance</label>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="number"
-                  min={0}
-                  max={10}
-                  step={0.1}
-                  value={advanced.slippagePct}
-                  onChange={(e) => trade.setSlippagePct(Number(e.target.value))}
-                  className="pe-10 font-mono text-sm"
-                />
-                <span className="text-xs text-muted-foreground">%</span>
-              </div>
+              <SlippageTolerancePopover
+                slippagePct={advanced.slippagePct}
+                onSlippageChange={(value) => trade.setSlippagePct(value)}
+              />
             </div>
             <p className="text-xs text-muted-foreground">
               This sets the maximum allowable slippage for the order. Orders will revert if the fill price exceeds this threshold.
@@ -405,6 +398,15 @@ function TradeInputs({ trade, validationError }: { trade: ReturnType<typeof useT
     }
   }
 
+  function handleFill(pct: number) {
+    if (walletBalance === undefined) return
+    if (pct === 1) {
+      handleAmountChange(walletBalance.toString())
+      return
+    }
+    handleAmountChange(String(walletBalance * pct))
+  }
+
   return (
     <div className="mt-3 min-w-0 space-y-2">
       {/* Pay */}
@@ -438,6 +440,24 @@ function TradeInputs({ trade, validationError }: { trade: ReturnType<typeof useT
           <p className="text-xs text-red-500 [overflow-wrap:anywhere]">{validationError || amountValidationError}</p>
         )}
       </div>
+
+      {/* Size quick-fill buttons */}
+      {walletBalance !== undefined && walletBalance > 0 && (
+        <div className="flex flex-wrap gap-1 pt-1">
+          {[0.25, 0.5, 0.75, 1].map((pct) => (
+            <Button
+              key={pct}
+              type="button"
+              variant="outline"
+              size="xs"
+              onClick={() => handleFill(pct)}
+              className="text-xs shrink-0"
+            >
+              {pct === 1 ? "Max" : `${Math.round(pct * 100)}%`}
+            </Button>
+          ))}
+        </div>
+      )}
 
       {/* Swap arrow */}
       {tradeFlags.isSwap && (

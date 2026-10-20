@@ -1335,3 +1335,10 @@
     animation: none;
     transform: none;
 }
+
+/* Market book density follows the root user preference without requiring
+   consumers or isolated tests to mount a React context provider. */
+.density-compact .so4-density-orderbook [role="row"] { min-height: 18px; }
+.density-comfortable .so4-density-orderbook [role="row"] { min-height: 28px; }
+.density-compact .so4-density-orderbook [role="cell"] { padding-block: 0; }
+.density-comfortable .so4-density-orderbook [role="cell"] { padding-block: 0.25rem; }

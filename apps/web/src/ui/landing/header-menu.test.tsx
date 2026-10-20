@@ -26,6 +26,7 @@ describe("HeaderMenu", () => {
     const user = userEvent.setup()
     render(<HeaderMenu />)
     const trigger = screen.getByRole("button", { name: "Open menu" })
+    expect(trigger).toHaveClass("min-h-11", "min-w-11")
 
     await user.click(trigger)
     const panel = screen.getByRole("dialog", { name: "Site menu" })
@@ -39,6 +40,24 @@ describe("HeaderMenu", () => {
     expect(trigger).toHaveAttribute("aria-expanded", "false")
     expect(panel).toHaveAttribute("inert")
     expect(document.body.style.overflow).toBe("")
+  })
+
+  it("keeps Tab focus inside the open menu", async () => {
+    vi.stubGlobal("matchMedia", () => ({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }))
+    const user = userEvent.setup()
+    render(<HeaderMenu />)
+    await user.click(screen.getByRole("button", { name: "Open menu" }))
+    const panel = screen.getByRole("dialog", { name: "Site menu" })
+    const focusables = panel.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )
+    focusables[focusables.length - 1].focus()
+    await user.tab()
+    expect(focusables[0]).toHaveFocus()
   })
 
   it("renders the mobile menu outside the scrolled header", () => {

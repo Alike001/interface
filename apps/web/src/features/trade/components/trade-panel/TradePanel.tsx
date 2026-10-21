@@ -166,13 +166,13 @@ export function TradePanel({ trade }: TradePanelProps) {
             value="Long"
             className="flex-1 text-green-500 data-[state=active]:text-green-400 font-medium"
           >
-            Long
+            <span aria-hidden="true">↗</span> Long
           </TabsTrigger>
           <TabsTrigger
             value="Short"
             className="flex-1 text-red-500 data-[state=active]:text-red-400 font-medium"
           >
-            Short
+            <span aria-hidden="true">↘</span> Short
           </TabsTrigger>
           <TabsTrigger value="Swap" className="flex-1 font-medium">
             Swap

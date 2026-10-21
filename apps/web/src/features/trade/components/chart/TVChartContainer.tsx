@@ -1,6 +1,7 @@
-import { CandlestickSeries, LineStyle, createChart } from "lightweight-charts"
+import { CandlestickSeries, CrosshairMode, LineStyle, createChart } from "lightweight-charts"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Skeleton } from "@workspace/ui/components/skeleton"
+import { RollingNumber } from "@workspace/ui/components/rolling-number"
 import { VisuallyHidden } from "@workspace/ui/components/visually-hidden"
 import { LiveRegion, useAnnouncer } from "@workspace/ui/components/live-region"
 import { cn } from "@workspace/ui/lib/utils"
@@ -36,6 +37,8 @@ type ChartLine = {
   color: string
   lineStyle?: LineStyle
 }
+
+type CrosshairEvent = Parameters<Parameters<IChartApi["subscribeCrosshairMove"]>[0]>[0]
 
 type Props = {
   /** Index-token address the chart data is fetched for. */
@@ -136,6 +139,8 @@ export function TVChartContainer({ symbol, period, marketLabel }: Props) {
   const account = useWalletStore((state) => state.address)
 
   const [showTable, setShowTable] = useState(false)
+  const [crosshairBar, setCrosshairBar] = useState<OhlcBar | null>(null)
+  const crosshairTimeRef = useRef<number | null>(null)
   const lastAnnounceRef = useRef(0)
   const announcer = useAnnouncer()
 
@@ -153,6 +158,7 @@ export function TVChartContainer({ symbol, period, marketLabel }: Props) {
   const label = marketLabel ?? symbol
   const summary = useMemo(() => getChartSummary(candles, liveBar, label, period), [candles, liveBar, label, period])
   const tableRows = useMemo(() => getRepresentativeRows(candles), [candles])
+  const legendBar = crosshairBar ?? liveBar ?? candles.at(-1) ?? null
 
   const currentSymbolRef = useRef(symbol)
   const currentPeriodRef = useRef(period)
@@ -165,6 +171,7 @@ export function TVChartContainer({ symbol, period, marketLabel }: Props) {
 
     const chart = createChart(containerRef.current, {
       ...buildChartOptions(palette),
+      crosshair: { mode: CrosshairMode.Magnet },
       handleScroll: { mouseWheel: true, pressedMouseMove: true },
       handleScale: { mouseWheel: true, pinch: true },
     })
@@ -173,6 +180,15 @@ export function TVChartContainer({ symbol, period, marketLabel }: Props) {
 
     chartRef.current = chart
     seriesRef.current = series
+
+    // Snap to candles in the renderer and update React only on a new candle.
+    const onCrosshairMove = (event: CrosshairEvent) => {
+      const bar = event.seriesData.get(series) as CandlestickData<UTCTimestamp> | undefined
+      if (!bar || crosshairTimeRef.current === Number(bar.time)) return
+      crosshairTimeRef.current = Number(bar.time)
+      setCrosshairBar({ time: Number(bar.time), open: bar.open, high: bar.high, low: bar.low, close: bar.close })
+    }
+    chart.subscribeCrosshairMove(onCrosshairMove)
 
     // Responsive resize — guard against zero-size to avoid chart overflow or
     // dimension errors. Preserve the chart instance across ordinary layout changes.
@@ -206,6 +222,7 @@ export function TVChartContainer({ symbol, period, marketLabel }: Props) {
     return () => {
       resizeObserver.disconnect()
       themeObserver.disconnect()
+      chart.unsubscribeCrosshairMove(onCrosshairMove)
       chart.remove()
       chartRef.current = null
       seriesRef.current = null
@@ -222,6 +239,8 @@ export function TVChartContainer({ symbol, period, marketLabel }: Props) {
     const symbolChanged = currentSymbolRef.current !== symbol
     currentSymbolRef.current = symbol
     currentPeriodRef.current = period
+    crosshairTimeRef.current = null
+    setCrosshairBar(null)
 
     if (!seriesRef.current) return
     seriesRef.current.setData([])
@@ -372,9 +391,19 @@ export function TVChartContainer({ symbol, period, marketLabel }: Props) {
             {sourceType === "oracle_reference" ? `Reference Price (${venueName})` : `Execution Fills (${venueName})`}
           </span>
         </div>
-        <span className="font-mono text-[10px] uppercase text-muted-foreground/60">
-          {network}
-        </span>
+        <div className="flex items-center gap-3 font-mono text-[10px] uppercase text-muted-foreground/60">
+          {legendBar && (
+            <dl className="flex items-center gap-2 normal-case" aria-label="Candle values" data-testid="ohlc-legend">
+              {(["open", "high", "low", "close"] as const).map((key) => (
+                <div key={key} className="flex gap-0.5">
+                  <dt>{key[0].toUpperCase()}</dt>
+                  <dd className="text-foreground"><RollingNumber value={formatUsd(legendBar[key], { decimals: 4 })} /></dd>
+                </div>
+              ))}
+            </dl>
+          )}
+          <span>{network}</span>
+        </div>
       </div>
 
       {/* ═══ Chart area ═══════════════════════════════════════════════════════ */}
@@ -466,7 +495,7 @@ export function TVChartContainer({ symbol, period, marketLabel }: Props) {
             claiming the content is static. */}
         <div
           ref={containerRef}
-          className={cn("h-full w-full transition-opacity duration-150", isStale && "opacity-60")}
+          className={cn("h-full w-full transition-opacity duration-base", isStale && "opacity-60")}
           style={{ touchAction: "none" }}
           role="region"
           aria-label={`Price chart for ${label}`}

@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useAnimatedRows } from "@workspace/ui/hooks/use-animated-rows"
 import { Button } from "@workspace/ui/components/button"
 import { DataTable } from "@workspace/ui/components/data-table"
 import { StatusBadge } from "@workspace/ui/components/status-badge"
@@ -14,6 +15,7 @@ import type { OrderLifecycleStage } from "../../lib/order-lifecycle"
 import type { Column } from "@workspace/ui/components/data-table"
 import type { OrderWithIndexer } from "../../hooks/useOrdersWithIndexer"
 import type { OrderKey } from "@/lib/contracts"
+import { RelativeTime } from "@/shared/components/RelativeTime"
 
 function toOrderKey(order: OrderWithIndexer): OrderKey {
   return order.key
@@ -49,6 +51,7 @@ export function OrdersList() {
     setCancelling(order.key)
     try {
       await cancelOrder(order.account, toOrderKey(order))
+      setDialogOpen(false)
     } finally {
       setCancelling(null)
     }
@@ -136,7 +139,7 @@ export function OrdersList() {
       header: "Created",
       accessor: (o) => (
         <span className="text-muted-foreground">
-          {new Date(o.updatedAt).toLocaleTimeString()}
+          <RelativeTime value={o.updatedAt} tick="second" />
         </span>
       ),
     },
@@ -178,6 +181,8 @@ export function OrdersList() {
     },
   ]
 
+  const attachMobileOrder = useAnimatedRows(orders, (order) => order.clientOrderId, true, isLoading)
+
   return (
     <>
       {isDisabled && (
@@ -194,6 +199,7 @@ export function OrdersList() {
         <DataTable
           columns={columns}
           data={orders}
+          animateRows
           isLoading={isLoading}
           emptyMessage={isDisabled ? "Indexer disabled - showing contract-only data" : "No open orders"}
           keyExtractor={(o) => o.clientOrderId}
@@ -217,7 +223,7 @@ export function OrdersList() {
             const statusLabel =
               cancelling === o.key ? "Cancelling" : o.awaitingIndex ? "Pending index" : o.status === "frozen" ? "Frozen" : "Open"
             return (
-              <div key={o.clientOrderId} role="listitem">
+              <div key={o.clientOrderId} ref={(node) => attachMobileOrder(o.clientOrderId, node)} role="listitem">
                 <AccountOrderCard
                   rowKey={o.clientOrderId}
                   marketName={o.marketName}

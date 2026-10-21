@@ -5,16 +5,18 @@ import {
   Scripts,
   createRootRoute,
 } from "@tanstack/react-router"
+import { useEffect } from "react"
+import { installWebVitalsReporting } from "@/features/observability/lib/web-vitals"
 import { ToastProvider } from "@workspace/ui/components/toast"
+import { TooltipProvider } from "@workspace/ui/components/tooltip"
 import { DensityProvider } from "@workspace/ui/components/density-provider"
 import appCss from "@workspace/ui/globals.css?url"
 import { AppProviders } from "../app/providers"
+import { SITE_NAME, SITE_URL, SOCIAL_URLS } from "../shared/lib/site-identity"
 import { RouteAnnouncer } from "../shared/components/RouteAnnouncer"
+import { RouteProgressBar } from "../shared/components/RouteProgressBar"
 
-// Update this to your production domain before going live.
-const SITE_URL = "https://levee.market"
-const SITE_NAME = "levee.market"
-const TITLE = "Levee · On-chain perpetuals"
+const TITLE = `${SITE_NAME} · On-chain perpetuals`
 const DESCRIPTION =
   "A unified-liquidity perp DEX. Deep books, sub-second matching, and self-custodied risk — built for traders who care where their fills come from."
 // TODO(GF3-003): apply the dot-separator convention (no em dashes as list
@@ -23,7 +25,7 @@ const DESCRIPTION =
 // OG/Twitter image alt) are fixed now since they're the page's actual SEO
 // surface; DESCRIPTION's dash is a genuine sentence break, not a list
 // separator, and stays.
-const OG_IMAGE = `${SITE_URL}/og-image.svg`
+const OG_IMAGE = `${SITE_URL}/og-image.webp`
 const TWITTER_HANDLE = "@so4market"
 
 // JSON-LD structured data (WebApplication + FinancialService)
@@ -33,7 +35,7 @@ const JSON_LD = {
     {
       "@type": "WebApplication",
       "@id": `${SITE_URL}/#app`,
-      name: "Levee",
+      name: SITE_NAME,
       url: SITE_URL,
       description: DESCRIPTION,
       applicationCategory: "FinanceApplication",
@@ -47,13 +49,13 @@ const JSON_LD = {
     {
       "@type": "Organization",
       "@id": `${SITE_URL}/#org`,
-      name: "Levee Labs",
+      name: "SO4 Markets",
       url: SITE_URL,
       logo: `${SITE_URL}/favicon.svg`,
       sameAs: [
-        "https://twitter.com/so4market",
-        "https://discord.gg/so4market",
-        "https://t.me/so4market",
+        SOCIAL_URLS.x,
+        SOCIAL_URLS.discord,
+        SOCIAL_URLS.telegram,
       ],
     },
     {
@@ -80,7 +82,7 @@ export const Route = createRootRoute({
         content:
           "perpetual DEX, on-chain perps, crypto derivatives, DeFi trading, BTC perp, ETH perp, low fee perp, self-custodied trading, unified liquidity",
       },
-      { name: "author", content: "Levee Labs" },
+      { name: "author", content: "SO4 Markets" },
       { name: "robots", content: "index, follow, max-image-preview:large" },
       // ds-allow: <meta content> requires a literal color string for
       // mobile browser chrome tinting — can't reference a CSS custom
@@ -100,11 +102,11 @@ export const Route = createRootRoute({
       { property: "og:image", content: OG_IMAGE },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
-      { property: "og:image:type", content: "image/svg+xml" },
+      { property: "og:image:type", content: "image/webp" },
       {
         property: "og:image:alt",
         content:
-          "Levee · On-chain perpetuals DEX · unified liquidity for modern markets",
+          `${SITE_NAME} · On-chain perpetuals DEX · unified liquidity for modern markets`,
       },
 
       // ── Twitter / X Card ────────────────────────────────────────
@@ -117,7 +119,7 @@ export const Route = createRootRoute({
       {
         name: "twitter:image:alt",
         content:
-          "Levee · On-chain perpetuals DEX · unified liquidity for modern markets",
+          `${SITE_NAME} · On-chain perpetuals DEX · unified liquidity for modern markets`,
       },
     ],
     links: [
@@ -158,6 +160,7 @@ export const Route = createRootRoute({
 // Sits above every route so the post-navigation focus/announcement handoff
 // (DS-078) is installed exactly once, inside router context.
 function RootComponent() {
+  useEffect(() => installWebVitalsReporting(), [])
   return (
     <>
       <RouteAnnouncer />
@@ -191,9 +194,12 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body>
         <DensityProvider>
           <AppProviders>
-            <ToastProvider>
-              {children}
-            </ToastProvider>
+            <TooltipProvider delay={500} timeout={400} closeDelay={0}>
+              <ToastProvider>
+                <RouteProgressBar />
+                {children}
+              </ToastProvider>
+            </TooltipProvider>
           </AppProviders>
         </DensityProvider>
         <Scripts />

@@ -3,6 +3,7 @@ import * as React from 'react'
 import { cn } from '@workspace/ui/lib/utils'
 import { Skeleton } from '@workspace/ui/components/skeleton'
 import { EmptyState } from '@workspace/ui/components/empty-state'
+import { useAnimatedRows } from '@workspace/ui/hooks/use-animated-rows'
 import {
   Table,
   TableBody,
@@ -31,6 +32,8 @@ interface DataTableProps<T> {
   keyExtractor: (row: T) => string
   onRowClick?: (row: T) => void
   selectedRowKey?: string
+  /** FLIP insertion/removal/reorder animations for live trading data. */
+  animateRows?: boolean
   className?: string
 }
 
@@ -43,8 +46,17 @@ function DataTable<T>({
   keyExtractor,
   onRowClick,
   selectedRowKey,
+  animateRows = false,
   className,
 }: DataTableProps<T>) {
+  const attachAnimatedRow = useAnimatedRows(data, keyExtractor, animateRows, isLoading)
+  const [scrollTop, setScrollTop] = React.useState(0)
+  const virtual = data.length > 100
+  const rowHeight = 46
+  const maxRows = 50
+  const start = virtual ? Math.min(Math.max(0, Math.floor(scrollTop / rowHeight) - 10), data.length - maxRows) : 0
+  const end = virtual ? Math.min(data.length, start + maxRows) : data.length
+
   if (isLoading) {
     return (
       <Table containerClassName={className}>
@@ -80,7 +92,7 @@ function DataTable<T>({
   }
 
   return (
-    <Table containerClassName={className}>
+    <Table containerClassName={cn(className, virtual && "max-h-[32rem] overflow-y-auto")} containerOnScroll={virtual ? (event) => setScrollTop(event.currentTarget.scrollTop) : undefined}>
       <TableHeader>
         <TableHeadRow>
           {columns.map((col) => (
@@ -91,13 +103,15 @@ function DataTable<T>({
         </TableHeadRow>
       </TableHeader>
       <TableBody>
-        {data.map((row) => {
+        {start > 0 && <TableRow aria-hidden="true" interactive={false}><TableCell colSpan={columns.length} style={{ height: start * rowHeight, padding: 0 }} /></TableRow>}
+        {data.slice(start, end).map((row) => {
           const key = keyExtractor(row)
           const isSelected = selectedRowKey !== undefined && selectedRowKey === key
 
           return (
             <TableRow
               key={key}
+              ref={animateRows ? (node) => attachAnimatedRow(key, node) : undefined}
               interactive={!!onRowClick}
               aria-current={isSelected ? 'true' : undefined}
               tabIndex={onRowClick ? 0 : undefined}
@@ -122,6 +136,7 @@ function DataTable<T>({
             </TableRow>
           )
         })}
+        {end < data.length && <TableRow aria-hidden="true" interactive={false}><TableCell colSpan={columns.length} style={{ height: (data.length - end) * rowHeight, padding: 0 }} /></TableRow>}
       </TableBody>
     </Table>
   )

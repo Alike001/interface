@@ -1,9 +1,9 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { cn } from "@workspace/ui/lib/utils"
 import { useOrderBook } from "../../hooks/useOrderBook"
 import { useRecentTrades } from "../../hooks/useRecentTrades"
 import type { OrderBookLevel } from "../../hooks/useOrderBook"
-import { formatUsd } from "@/shared/lib/format"
+import { formatToken, formatUsd } from "@/shared/lib/format"
 
 type Props = {
   symbol: string | undefined
@@ -23,6 +23,33 @@ function DepthRow({ level, side, compact, onHover }: RowProps) {
   const isBid = side === "bid"
   const depthPct = `${(level.depth * 100).toFixed(1)}%`
 
+  // OB-011 / issue 873: 300ms price-tick flash on level size/price update
+  const [flashDirection, setFlashDirection] = useState<"up" | "down" | null>(null)
+  const prevSizeRef = useRef(level.size)
+  const prevPriceRef = useRef(level.price)
+  const flashKeyRef = useRef(0)
+
+  useEffect(() => {
+    const sizeChanged = prevSizeRef.current !== level.size
+    const priceChanged = prevPriceRef.current !== level.price
+
+    if (sizeChanged || priceChanged) {
+      const isUp = priceChanged
+        ? level.price > prevPriceRef.current
+        : level.size > prevSizeRef.current
+
+      prevSizeRef.current = level.size
+      prevPriceRef.current = level.price
+      flashKeyRef.current += 1
+      setFlashDirection(isUp ? "up" : "down")
+
+      const timer = setTimeout(() => {
+        setFlashDirection(null)
+      }, 300)
+      return () => clearTimeout(timer)
+    }
+  }, [level.size, level.price])
+
   return (
     <div
       role="row"
@@ -38,11 +65,22 @@ function DepthRow({ level, side, compact, onHover }: RowProps) {
       tabIndex={0}
       aria-label={`${isBid ? "Bid" : "Ask"} at ${formatUsd(level.price, { decimals: 2 })}, size ${level.size.toFixed(4)}, cumulative ${level.total.toFixed(4)}`}
     >
+      {/* 300ms price-tick flash overlay — zero layout shift, opacity only */}
+      {flashDirection && (
+        <div
+          key={flashKeyRef.current}
+          aria-hidden="true"
+          className={cn(
+            "pointer-events-none absolute inset-0 z-0",
+            flashDirection === "up" ? "so4-flash-up-overlay" : "so4-flash-down-overlay",
+          )}
+        />
+      )}
       {/* depth fill — absolutely positioned behind text */}
       <div
         aria-hidden="true"
         className={cn(
-          "pointer-events-none absolute inset-y-0 transition-[width] duration-100",
+          "pointer-events-none absolute inset-y-0 transition-[width] duration-fast",
           isBid
             ? "right-0 bg-green-500/10"
             : "left-0 bg-red-500/10",
@@ -66,10 +104,7 @@ function DepthRow({ level, side, compact, onHover }: RowProps) {
         role="cell"
         className="relative z-10 w-[30%] shrink-0 px-1 text-right tabular-nums text-foreground/80"
       >
-        {level.size.toLocaleString(undefined, {
-          minimumFractionDigits: 3,
-          maximumFractionDigits: 4,
-        })}
+        {formatToken(level.size, "", { decimals: 4, minDecimals: 3 }).trim()}
       </span>
 
       {/* cumulative total */}
@@ -77,10 +112,7 @@ function DepthRow({ level, side, compact, onHover }: RowProps) {
         role="cell"
         className="relative z-10 flex-1 px-2 text-right tabular-nums text-muted-foreground"
       >
-        {level.total.toLocaleString(undefined, {
-          minimumFractionDigits: 3,
-          maximumFractionDigits: 4,
-        })}
+        {formatToken(level.total, "", { decimals: 4, minDecimals: 3 }).trim()}
       </span>
     </div>
   )
@@ -113,10 +145,7 @@ function DepthInspection({
         <div className="flex justify-between gap-4">
           <span className="text-muted-foreground">Cumulative Qty:</span>
           <span className="text-foreground font-medium">
-            {level.total.toLocaleString(undefined, {
-              minimumFractionDigits: 4,
-              maximumFractionDigits: 6,
-            })}
+            {formatToken(level.total, "", { decimals: 6, minDecimals: 4 }).trim()}
           </span>
         </div>
         <div className="flex justify-between gap-4">
@@ -170,6 +199,27 @@ function SpreadRow({
   referencePrice: number | null
   referencePriceLabel: string
 }) {
+  // OB-011 / issue 873: 300ms price-tick flash on last/reference price update
+  const [flashDirection, setFlashDirection] = useState<"up" | "down" | null>(null)
+  const prevPriceRef = useRef(referencePrice)
+  const flashKeyRef = useRef(0)
+
+  useEffect(() => {
+    if (referencePrice !== null && prevPriceRef.current !== null && referencePrice !== prevPriceRef.current) {
+      const isUp = referencePrice > prevPriceRef.current
+      prevPriceRef.current = referencePrice
+      flashKeyRef.current += 1
+      setFlashDirection(isUp ? "up" : "down")
+
+      const timer = setTimeout(() => {
+        setFlashDirection(null)
+      }, 300)
+      return () => clearTimeout(timer)
+    } else if (referencePrice !== null && prevPriceRef.current === null) {
+      prevPriceRef.current = referencePrice
+    }
+  }, [referencePrice])
+
   return (
     <div
       role="separator"
@@ -188,18 +238,39 @@ function SpreadRow({
         {spreadPct !== null && <span className="ml-1">({spreadPct.toFixed(3)}%)</span>}
       </span>
       {referencePrice !== null && (
-        <span title={referencePriceLabel}>
-          {referencePriceLabel === "Last" && (
-            <span className="mr-0.5 opacity-60">Last</span>
+        <span
+          title={referencePriceLabel}
+          className="relative inline-flex items-center px-1 py-0.5 rounded overflow-hidden"
+        >
+          {flashDirection && (
+            <span
+              key={flashKeyRef.current}
+              aria-hidden="true"
+              className={cn(
+                "pointer-events-none absolute inset-0 z-0 rounded",
+                flashDirection === "up" ? "so4-flash-up-overlay" : "so4-flash-down-overlay",
+              )}
+            />
           )}
-          {referencePriceLabel === "Mid" && (
-            <span className="mr-0.5 opacity-60">Mid</span>
-          )}
-          {referencePriceLabel === "Mark" && (
-            <span className="mr-0.5 opacity-60">Mark</span>
-          )}
-          <span className="text-foreground/70">
-            {formatUsd(referencePrice, { decimals: 2 })}
+          <span className="relative z-10 flex items-center">
+            {referencePriceLabel === "Last" && (
+              <span className="mr-0.5 opacity-60">Last</span>
+            )}
+            {referencePriceLabel === "Mid" && (
+              <span className="mr-0.5 opacity-60">Mid</span>
+            )}
+            {referencePriceLabel === "Mark" && (
+              <span className="mr-0.5 opacity-60">Mark</span>
+            )}
+            <span
+              className={cn(
+                "text-foreground/70",
+                flashDirection === "up" && "text-green-500",
+                flashDirection === "down" && "text-red-500",
+              )}
+            >
+              {formatUsd(referencePrice, { decimals: 2 })}
+            </span>
           </span>
         </span>
       )}
@@ -210,8 +281,16 @@ function SpreadRow({
 // ── main component ────────────────────────────────────────────────────────────
 
 export function DepthLadder({ symbol, compact = false }: Props) {
+  const rootRef = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(true)
+  useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") return
+    const observer = new IntersectionObserver(([entry]) => setVisible(entry?.isIntersecting ?? true))
+    if (rootRef.current) observer.observe(rootRef.current)
+    return () => observer.disconnect()
+  }, [])
   const { bids, asks, spread, spreadPct, midPrice, status, isLoading } =
-    useOrderBook(symbol)
+    useOrderBook(visible ? symbol : undefined)
   const { trades } = useRecentTrades(symbol)
 
   // OB-054: Determine reference price — prefer last trade, fall back to mid price
@@ -226,6 +305,7 @@ export function DepthLadder({ symbol, compact = false }: Props) {
 
   return (
     <div
+      ref={rootRef}
       role="table"
       aria-label={`${symbol ?? "Market"} order-book depth ladder`}
       className="flex h-full w-full flex-col overflow-hidden text-xs"

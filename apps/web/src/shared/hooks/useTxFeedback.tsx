@@ -2,7 +2,7 @@ import { useCallback, useRef } from "react"
 import { toast } from "@workspace/ui/components/toast"
 import { explorerTxUrl } from "@/app/config/network"
 
-// #732: Explicit lifecycle events for transaction feedback without English message matching
+// Issue 732: Explicit lifecycle events for transaction feedback without English message matching
 export type TxFeedbackEvent =
   | { type: "signing"; message: string }
   | { type: "signed" }
@@ -15,7 +15,7 @@ export type TxFeedbackEvent =
   | { type: "error"; message: string }
   | { type: "unknown_outcome"; hash?: string }
 
-// #732: Each attempt gets its own stable toast ID; concurrent transactions don't interfere
+// Issue 732: Each attempt gets its own stable toast ID; concurrent transactions don't interfere
 type TxAttempt = {
   readonly attemptId: string
   readonly createdAt: number
@@ -143,7 +143,7 @@ export function useTxFeedback() {
         break
 
       case "unknown_outcome":
-        // #733: Unknown submission outcome — status should be looked up by hash if available
+        // Issue 733: Unknown submission outcome — status should be looked up by hash if available
         attempt.status = "submitted"
         if (attempt.toastId) {
           toast.show({

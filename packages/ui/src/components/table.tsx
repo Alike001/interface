@@ -22,45 +22,15 @@ import { cn } from "@workspace/ui/lib/utils"
 function Table({
   className,
   containerClassName,
+  containerOnScroll,
   ...props
-}: React.ComponentProps<"table"> & { containerClassName?: string }) {
-  const [scrollable, setScrollable] = React.useState(false)
-  const { rootRef, viewportRef } = useOverflowEdges(
-    "horizontal",
-    React.useCallback(
-      (edges: { left: boolean; right: boolean }) =>
-        setScrollable(edges.left || edges.right),
-      []
-    )
-  )
-
-  // The container is both the measured root and the scrolling viewport.
-  const setContainer = React.useCallback(
-    (node: HTMLDivElement | null) => {
-      rootRef.current = node
-      viewportRef.current = node
-    },
-    [rootRef, viewportRef]
-  )
-
-  const ariaLabel = props["aria-label"]
-  const ariaLabelledBy = props["aria-labelledby"]
-  const labelled = Boolean(ariaLabel || ariaLabelledBy)
-
+}: React.ComponentProps<"table"> & { containerClassName?: string; containerOnScroll?: React.UIEventHandler<HTMLDivElement> }) {
   return (
     <div
       ref={setContainer}
       data-slot="table-container"
-      role={scrollable && labelled ? "region" : undefined}
-      tabIndex={scrollable ? 0 : undefined}
-      aria-label={scrollable && labelled ? ariaLabel : undefined}
-      aria-labelledby={scrollable && labelled ? ariaLabelledBy : undefined}
-      className={cn(
-        "w-full overflow-x-auto",
-        scrollable &&
-          "focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none",
-        containerClassName
-      )}
+      onScroll={containerOnScroll}
+      className={cn("w-full overflow-x-auto", containerClassName)}
     >
       <table
         data-slot="table"

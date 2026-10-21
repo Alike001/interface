@@ -1,6 +1,6 @@
 {
-  "short_name": "Levee",
-  "name": "Levee — On-chain perpetuals",
+  "short_name": "SO4",
+  "name": "SO4 Market \u2014 On-chain perpetuals",
   "description": "A unified-liquidity perp DEX. Deep books, sub-second matching, and self-custodied risk.",
   "icons": [
     {
@@ -10,10 +10,22 @@
       "purpose": "any maskable"
     },
     {
+      "src": "logo192.webp",
+      "sizes": "192x192",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
       "src": "logo192.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "any"
+    },
+    {
+      "src": "logo512.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any maskable"
     },
     {
       "src": "logo512.png",

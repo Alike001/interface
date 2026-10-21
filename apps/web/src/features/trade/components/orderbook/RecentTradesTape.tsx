@@ -1,4 +1,5 @@
-import { useRef } from "react"
+import { useRef, useState } from "react"
+import { useAnimatedRows } from "@workspace/ui/hooks/use-animated-rows"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import {
   Table,
@@ -11,6 +12,8 @@ import {
 } from "@workspace/ui/components/table"
 import { useRecentTrades } from "../../hooks/useRecentTrades"
 import { formatUsd } from "@/shared/lib/format"
+import { RelativeTime } from "@/shared/components/RelativeTime"
+import { formatToken } from "@/shared/lib/format"
 
 type Props = {
   symbol: string | undefined
@@ -19,6 +22,13 @@ type Props = {
 export function RecentTradesTape({ symbol }: Props) {
   const { trades, status, isLoading } = useRecentTrades(symbol)
   const containerRef = useRef<HTMLDivElement>(null)
+  // Window large trade histories; keep a modest overscan for keyboard navigation.
+  const [scrollTop, setScrollTop] = useState(0)
+  const rowHeight = 36
+  const windowSize = 60
+  const start = trades.length > windowSize ? Math.min(Math.max(0, Math.floor(scrollTop / rowHeight) - 10), trades.length - windowSize) : 0
+  const end = trades.length > windowSize ? Math.min(trades.length, start + windowSize) : trades.length
+  const attachTradeRow = useAnimatedRows(trades, (trade) => trade.id, true, isLoading)
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden text-xs">
@@ -52,17 +62,7 @@ export function RecentTradesTape({ symbol }: Props) {
       </div>
 
       {/* ── Scrollable trades list ───────────────────────────────────────── */}
-      {/* Nothing inside the tape is focusable, so the scroll container itself
-          is the tab stop — otherwise the list cannot be scrolled by keyboard
-          (axe scrollable-region-focusable). A named region makes that stop
-          announce what it is. */}
-      <div
-        ref={containerRef}
-        role="region"
-        tabIndex={0}
-        aria-label={`Recent trades for ${symbol ?? "the selected market"}`}
-        className="flex-1 overflow-y-auto px-2 py-1 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
-      >
+      <div ref={containerRef} onScroll={(event) => setScrollTop(event.currentTarget.scrollTop)} className="flex-1 overflow-y-auto px-2 py-1">
         {isLoading && trades.length === 0 ? (
           <div className="flex flex-col gap-1.5 p-2" role="status" aria-label="Loading recent trades…">
             <Skeleton className="h-5 w-full" />
@@ -86,16 +86,17 @@ export function RecentTradesTape({ symbol }: Props) {
               </TableHeadRow>
             </TableHeader>
             <TableBody>
-              {trades.map((trade) => (
-                <TableRow key={trade.id} interactive={false} className="font-mono text-[11px]">{/* ds-allow: dense trade row font size */}
+              {start > 0 && <TableRow aria-hidden="true"><TableCell colSpan={4} style={{ height: start * rowHeight, padding: 0 }} /></TableRow>}
+              {trades.slice(start, end).map((trade) => (
+                <TableRow key={trade.id} ref={(node) => attachTradeRow(trade.id, node)} interactive={false} className="font-mono text-[11px]">{/* ds-allow: dense trade row font size */}
                   <TableCell className="font-medium text-foreground">
                     {formatUsd(trade.price, { decimals: 4 })}
                   </TableCell>
                   <TableCell align="right" className="text-muted-foreground">
-                    {trade.qty.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
+                    {formatToken(trade.qty, "", { decimals: 4, minDecimals: 2 }).trim()}
                   </TableCell>
                   <TableCell align="right" className="text-muted-foreground/80">
-                    {new Date(trade.time).toLocaleTimeString()}
+                    <RelativeTime value={trade.time} tick="second" />
                   </TableCell>
                   <TableCell align="right">
                     {trade.side === "buy" ? (
@@ -108,6 +109,7 @@ export function RecentTradesTape({ symbol }: Props) {
                   </TableCell>
                 </TableRow>
               ))}
+              {end < trades.length && <TableRow aria-hidden="true"><TableCell colSpan={4} style={{ height: (trades.length - end) * rowHeight, padding: 0 }} /></TableRow>}
             </TableBody>
           </Table>
         )}

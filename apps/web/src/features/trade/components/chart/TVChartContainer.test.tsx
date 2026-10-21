@@ -15,6 +15,8 @@ const mockChartMethods = {
   remove: vi.fn(),
   applyOptions: vi.fn(),
   timeScale: vi.fn(() => mockTimeScale),
+  subscribeCrosshairMove: vi.fn(),
+  unsubscribeCrosshairMove: vi.fn(),
 }
 
 const mockSeriesMethods = {
@@ -169,6 +171,16 @@ describe("TVChartContainer", () => {
     ).toBeInTheDocument()
     expect(screen.getByText(/5m chart for BTC\/USD/)).toBeInTheDocument()
     expect(screen.queryByText(/CCFTOPHUPSUDO/)).not.toBeInTheDocument()
+  })
+
+  it("uses the magnetic crosshair and shows its OHLC legend", () => {
+    mockCandles = SAMPLE_CANDLES
+    render(<TVChartContainer {...defaultProps} />)
+
+    expect(mockCreateChart).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      crosshair: { mode: 1 },
+    }))
+    expect(screen.getByTestId("ohlc-legend")).toBeInTheDocument()
   })
 
   it("describes the chart as linked from the summary", () => {

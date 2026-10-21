@@ -39,6 +39,7 @@ vi.mock("@tanstack/react-router", () => {
   return {
     createFileRoute,
     createRootRoute,
+    notFound: () => new Error("Not Found"),
     Link: ({ children, to, ...props }: Record<string, unknown>) => (
       <a href={to as string} {...props}>
         {children as React.ReactNode}
@@ -270,6 +271,54 @@ describe("route smoke tests", () => {
       const RouteComponent = Route.options.component!
       render(<RouteComponent />, { wrapper: createWrapper() })
       await screen.findByRole("heading", { name: /referrals/i })
+    })
+  })
+
+  describe("/gallery", () => {
+    it("throws notFound in production", async () => {
+      const origDev = import.meta.env.DEV
+      try {
+        import.meta.env.DEV = false
+        const { Route } = await import("./gallery")
+        expect(() => Reflect.apply(Route.options.beforeLoad!, undefined, [])).toThrow()
+      } finally {
+        import.meta.env.DEV = origDev
+      }
+    })
+
+    it("allows loading in dev mode", async () => {
+      const origDev = import.meta.env.DEV
+      try {
+        import.meta.env.DEV = true
+        const { Route } = await import("./gallery")
+        expect(() => Reflect.apply(Route.options.beforeLoad!, undefined, [])).not.toThrow()
+      } finally {
+        import.meta.env.DEV = origDev
+      }
+    })
+  })
+
+  describe("/design-system", () => {
+    it("throws notFound in production", async () => {
+      const origDev = import.meta.env.DEV
+      try {
+        import.meta.env.DEV = false
+        const { Route } = await import("./design-system")
+        expect(() => Reflect.apply(Route.options.beforeLoad!, undefined, [])).toThrow()
+      } finally {
+        import.meta.env.DEV = origDev
+      }
+    })
+
+    it("allows loading in dev mode", async () => {
+      const origDev = import.meta.env.DEV
+      try {
+        import.meta.env.DEV = true
+        const { Route } = await import("./design-system")
+        expect(() => Reflect.apply(Route.options.beforeLoad!, undefined, [])).not.toThrow()
+      } finally {
+        import.meta.env.DEV = origDev
+      }
     })
   })
 

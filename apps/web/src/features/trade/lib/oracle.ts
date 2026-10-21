@@ -9,6 +9,7 @@
 
 import { ENV } from "../../../app/config/env"
 import { fetchPythAttestations } from "./pyth"
+import { CONTRACTS } from "@/app/config/contracts"
 import { formatPct } from "@/shared/lib/format"
 
 export type PriceSource = "pyth" | "binance" | "gmx" | "fallback"
@@ -55,12 +56,12 @@ function resolveBaseSymbol(symbolOrAddress: string): string {
   if (BINANCE_SYMBOL[symbolOrAddress]) return symbolOrAddress
   // Test token symbol (TWBTC → BTC)
   if (TEST_TO_BASE[symbolOrAddress]) return TEST_TO_BASE[symbolOrAddress]
-  // Contract address — map via ENV token addresses
+  // Contract address — map via CONTRACTS token addresses
   const addrMap: Record<string, string> = {
-    [ENV.CONTRACTS.TOKENS.TWBTC]: "BTC",
-    [ENV.CONTRACTS.TOKENS.TETH]:  "ETH",
-    [ENV.CONTRACTS.TOKENS.TXLM]:  "XLM",
-    [ENV.CONTRACTS.TOKENS.TUSDC]: "USDC",
+    [CONTRACTS.tokens.twbtc]: "BTC",
+    [CONTRACTS.tokens.teth]:  "ETH",
+    [CONTRACTS.tokens.txlm]:  "XLM",
+    [CONTRACTS.tokens.tusdc]: "USDC",
   }
   return addrMap[symbolOrAddress] ?? symbolOrAddress
 }
@@ -365,7 +366,8 @@ export async function fetchOracleCandles(
       network: ENV.NETWORK,
     }
   } catch {
-    return emptyResponse("SO4 Oracle Reference")
+    if (signal?.aborted) return emptyResponse("SO4 Oracle Reference")
+    throw new Error(`Chart data unavailable for ${symbol}: all candle sources failed`)
   }
 }
 
@@ -475,7 +477,7 @@ type PythBenchmarksResponse = {
   c: Array<number>
 }
 
-async function fetchPythBenchmarkCandles(
+export async function fetchPythBenchmarkCandles(
   symbol: string,
   period: string,
   limit: number,

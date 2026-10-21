@@ -5,6 +5,8 @@ import {
   Scripts,
   createRootRoute,
 } from "@tanstack/react-router"
+import { useEffect } from "react"
+import { installWebVitalsReporting } from "@/features/observability/lib/web-vitals"
 import { ToastProvider } from "@workspace/ui/components/toast"
 import { TooltipProvider } from "@workspace/ui/components/tooltip"
 import { DensityProvider } from "@workspace/ui/components/density-provider"
@@ -23,7 +25,7 @@ const DESCRIPTION =
 // OG/Twitter image alt) are fixed now since they're the page's actual SEO
 // surface; DESCRIPTION's dash is a genuine sentence break, not a list
 // separator, and stays.
-const OG_IMAGE = `${SITE_URL}/og-image.svg`
+const OG_IMAGE = `${SITE_URL}/og-image.webp`
 const TWITTER_HANDLE = "@so4market"
 
 // JSON-LD structured data (WebApplication + FinancialService)
@@ -100,7 +102,7 @@ export const Route = createRootRoute({
       { property: "og:image", content: OG_IMAGE },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
-      { property: "og:image:type", content: "image/svg+xml" },
+      { property: "og:image:type", content: "image/webp" },
       {
         property: "og:image:alt",
         content:
@@ -158,6 +160,7 @@ export const Route = createRootRoute({
 // Sits above every route so the post-navigation focus/announcement handoff
 // (DS-078) is installed exactly once, inside router context.
 function RootComponent() {
+  useEffect(() => installWebVitalsReporting(), [])
   return (
     <>
       <RouteAnnouncer />

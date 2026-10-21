@@ -9,11 +9,13 @@ import { cn } from "@workspace/ui/lib/utils"
 function Table({
   className,
   containerClassName,
+  containerOnScroll,
   ...props
-}: React.ComponentProps<"table"> & { containerClassName?: string }) {
+}: React.ComponentProps<"table"> & { containerClassName?: string; containerOnScroll?: React.UIEventHandler<HTMLDivElement> }) {
   return (
     <div
       data-slot="table-container"
+      onScroll={containerOnScroll}
       className={cn("w-full overflow-x-auto", containerClassName)}
     >
       <table

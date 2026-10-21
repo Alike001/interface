@@ -15,12 +15,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle,
-} from "@workspace/ui/components/empty"
+import { EmptyState } from "@workspace/ui/components/empty-state"
 import { Kbd, KbdGroup } from "@workspace/ui/components/kbd"
 import { ScrollArea } from "@workspace/ui/components/scroll-area"
 import { cn } from "@workspace/ui/lib/utils"
@@ -194,16 +189,15 @@ export function CommandMenu({
                 )
               })}
               <ComboboxEmpty>
-                <Empty className="py-10">
-                  <EmptyHeader>
-                    <EmptyTitle>{emptyTitle}</EmptyTitle>
-                    <EmptyDescription>
-                      {normalizedQuery
-                        ? emptyDescription
-                        : "No commands are available yet."}
-                    </EmptyDescription>
-                  </EmptyHeader>
-                </Empty>
+                <EmptyState
+                  className="py-10"
+                  title={emptyTitle}
+                  description={
+                    normalizedQuery
+                      ? emptyDescription
+                      : "No commands are available yet."
+                  }
+                />
               </ComboboxEmpty>
             </ComboboxList>
           </ScrollArea>

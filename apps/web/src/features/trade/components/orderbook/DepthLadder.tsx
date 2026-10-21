@@ -281,8 +281,16 @@ function SpreadRow({
 // ── main component ────────────────────────────────────────────────────────────
 
 export function DepthLadder({ symbol, compact = false }: Props) {
+  const rootRef = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(true)
+  useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") return
+    const observer = new IntersectionObserver(([entry]) => setVisible(entry?.isIntersecting ?? true))
+    if (rootRef.current) observer.observe(rootRef.current)
+    return () => observer.disconnect()
+  }, [])
   const { bids, asks, spread, spreadPct, midPrice, status, isLoading } =
-    useOrderBook(symbol)
+    useOrderBook(visible ? symbol : undefined)
   const { trades } = useRecentTrades(symbol)
 
   // OB-054: Determine reference price — prefer last trade, fall back to mid price
@@ -297,6 +305,7 @@ export function DepthLadder({ symbol, compact = false }: Props) {
 
   return (
     <div
+      ref={rootRef}
       role="table"
       aria-label={`${symbol ?? "Market"} order-book depth ladder`}
       className="flex h-full w-full flex-col overflow-hidden text-xs"

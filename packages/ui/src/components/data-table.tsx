@@ -50,6 +50,12 @@ function DataTable<T>({
   className,
 }: DataTableProps<T>) {
   const attachAnimatedRow = useAnimatedRows(data, keyExtractor, animateRows, isLoading)
+  const [scrollTop, setScrollTop] = React.useState(0)
+  const virtual = data.length > 100
+  const rowHeight = 46
+  const maxRows = 50
+  const start = virtual ? Math.min(Math.max(0, Math.floor(scrollTop / rowHeight) - 10), data.length - maxRows) : 0
+  const end = virtual ? Math.min(data.length, start + maxRows) : data.length
 
   if (isLoading) {
     return (
@@ -86,7 +92,7 @@ function DataTable<T>({
   }
 
   return (
-    <Table containerClassName={className}>
+    <Table containerClassName={cn(className, virtual && "max-h-[32rem] overflow-y-auto")} containerOnScroll={virtual ? (event) => setScrollTop(event.currentTarget.scrollTop) : undefined}>
       <TableHeader>
         <TableHeadRow>
           {columns.map((col) => (
@@ -97,7 +103,8 @@ function DataTable<T>({
         </TableHeadRow>
       </TableHeader>
       <TableBody>
-        {data.map((row) => {
+        {start > 0 && <TableRow aria-hidden="true" interactive={false}><TableCell colSpan={columns.length} style={{ height: start * rowHeight, padding: 0 }} /></TableRow>}
+        {data.slice(start, end).map((row) => {
           const key = keyExtractor(row)
           const isSelected = selectedRowKey !== undefined && selectedRowKey === key
 
@@ -129,6 +136,7 @@ function DataTable<T>({
             </TableRow>
           )
         })}
+        {end < data.length && <TableRow aria-hidden="true" interactive={false}><TableCell colSpan={columns.length} style={{ height: (data.length - end) * rowHeight, padding: 0 }} /></TableRow>}
       </TableBody>
     </Table>
   )

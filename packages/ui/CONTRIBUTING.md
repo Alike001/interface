@@ -33,6 +33,44 @@ If you're unsure, default to the feature directory — it's a much smaller chang
 6. **Document in the gallery**: add your component to [`apps/web/src/features/gallery/components/gallery-page.tsx`](../../apps/web/src/features/gallery/components/gallery-page.tsx), rendering every variant/size it supports. This is how reviewers and future contributors discover what exists and see every state at a glance — see [`DESIGN.md`](../../DESIGN.md#the-component-gallery-gallery) for why it exists.
 7. **Log in the changelog**: if the change is user-observable (new component, API change, deprecation, accessibility fix, token addition), add an entry to [`CHANGELOG.md`](./CHANGELOG.md) under the correct section — see the file's header for the expected sections. Breaking changes require a `### Migration note` subsection.
 
+## Trigger parts: pass a custom element through `render`, never as a child
+
+Every Base UI trigger part — `TooltipTrigger`, `PopoverTrigger`, `DialogTrigger`,
+`DropdownMenuTrigger`, `SelectTrigger`, `AlertDialogTrigger` — **renders its own
+`<button>`**. Children go *inside* that button, so wrapping one of our own
+interactive components in a trigger produces a button inside a button:
+
+```tsx
+// ✗ Wrong — renders <button><button>Hover me</button></button>
+<TooltipTrigger>
+  <Button variant="outline">Hover me</Button>
+</TooltipTrigger>
+```
+
+React reports this at hydration (`<button> cannot be a descendant of
+<button>`), the markup is invalid HTML, and axe flags it as
+`nested-interactive`. Use the `render` prop instead: Base UI then merges its
+own props (ref, ARIA state, event handlers) onto *your* element rather than
+wrapping it.
+
+```tsx
+// ✓ Right — one button, carrying both Button's styling and the trigger's behaviour
+<TooltipTrigger render={<Button variant="outline">Hover me</Button>} />
+```
+
+Plain text is fine as a child, because text is not an element:
+
+```tsx
+<TooltipTrigger className="underline decoration-dotted">Execution fee</TooltipTrigger>
+```
+
+The same applies to any non-button element you want the trigger to be — pass
+`render={<span />}`, `render={<div />}` and so on, and put the content inside
+the trigger as children. [`icon-button.tsx`](./src/components/icon-button.tsx),
+[`copy-button.tsx`](./src/components/copy-button.tsx) and
+[`address-display.tsx`](./src/components/address-display.tsx) are the
+in-repo examples.
+
 ## Commands
 
 Run from the repo root (or `--filter=@workspace/ui` via turbo to scope to just this package):

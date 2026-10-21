@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react"
+import { useEffect, useId, useMemo, useRef, useState } from "react"
 // Aliased so the DOM globals of the same name stay available for the native
 // `document.addEventListener` handlers below.
 import { useTokenPrices } from "../../hooks/useTokenPrices"
@@ -14,6 +14,14 @@ import { formatUsd } from "@/shared/lib/format"
 type Props = {
   symbol: string | undefined
   onSelect: (indexTokenAddress: string) => void
+}
+
+const RECENT_MARKETS_KEY = "so4-recent-markets-v1"
+function readRecentMarkets(): string[] {
+  try {
+    const value = JSON.parse(localStorage.getItem(RECENT_MARKETS_KEY) ?? "[]")
+    return Array.isArray(value) ? value.filter((id): id is string => typeof id === "string") : []
+  } catch { return [] }
 }
 
 function MarketRow({
@@ -46,7 +54,7 @@ function MarketRow({
       role="option"
       aria-selected={isActive}
       tabIndex={-1}
-      className={`flex w-full cursor-pointer items-center justify-between gap-4 rounded-sm px-3 py-2 text-start text-sm transition-colors ${
+      className={`flex w-full cursor-pointer items-center justify-between gap-4 rounded px-3 py-2 text-start text-sm transition-colors ${
         isActive ? "bg-accent/60" : "hover:bg-accent"
       }`}
       onClick={onSelect}
@@ -66,9 +74,9 @@ function MarketRow({
         <span
           className={`w-16 font-mono text-xs ${
             isPositive
-              ? "text-green-500"
+              ? "text-long"
               : isNegative
-                ? "text-red-500"
+                ? "text-short"
                 : "text-muted-foreground"
           }`}
         >
@@ -83,6 +91,7 @@ export function MarketSelector({ symbol, onSelect }: Props) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState("")
   const [activeIndex, setActiveIndex] = useState(0)
+  const [recentMarkets, setRecentMarkets] = useState<string[]>(() => readRecentMarkets())
   const containerRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -105,15 +114,21 @@ export function MarketSelector({ symbol, onSelect }: Props) {
       : m.name.toLowerCase().includes(search.toLowerCase()) ||
         m.indexTokenAddress.toLowerCase().includes(search.toLowerCase())
   )
+  const recent = useMemo(() => recentMarkets.map((id) => markets.find((m) => m.indexTokenAddress === id)).filter((m): m is Market => Boolean(m)), [markets, recentMarkets])
+  const orderedMarkets = useMemo(() => {
+    if (search.trim() !== "") return filtered
+    const recentIds = new Set(recent.map((market) => market.indexTokenAddress))
+    return [...recent, ...filtered.filter((market) => !recentIds.has(market.indexTokenAddress))]
+  }, [filtered, recent, search])
 
   useEffect(() => {
     if (!open) return
 
-    const currentIndex = filtered.findIndex(
+    const currentIndex = orderedMarkets.findIndex(
       (m) => m.indexTokenAddress === symbol
     )
     setActiveIndex(Math.max(0, currentIndex))
-  }, [filtered, open, symbol])
+  }, [open, orderedMarkets, symbol])
 
   useEffect(() => {
     if (!open) return
@@ -143,6 +158,9 @@ export function MarketSelector({ symbol, onSelect }: Props) {
   }, [open])
 
   const selectMarket = (market: Market) => {
+    const nextRecent = [market.indexTokenAddress, ...recentMarkets.filter((id) => id !== market.indexTokenAddress)].slice(0, 5)
+    setRecentMarkets(nextRecent)
+    try { localStorage.setItem(RECENT_MARKETS_KEY, JSON.stringify(nextRecent)) } catch { /* optional preference */ }
     const prefersReduced =
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -163,10 +181,10 @@ export function MarketSelector({ symbol, onSelect }: Props) {
   }
 
   const moveActive = (delta: number) => {
-    if (filtered.length === 0) return
+    if (orderedMarkets.length === 0) return
     setActiveIndex((current) => {
       const next = current + delta
-      return Math.max(0, Math.min(next, filtered.length - 1))
+      return Math.max(0, Math.min(next, orderedMarkets.length - 1))
     })
   }
 
@@ -192,12 +210,12 @@ export function MarketSelector({ symbol, onSelect }: Props) {
 
     if (event.key === "End") {
       event.preventDefault()
-      setActiveIndex(filtered.length - 1)
+      setActiveIndex(orderedMarkets.length - 1)
     }
 
     if (event.key === "Enter") {
       event.preventDefault()
-      const market = filtered.at(activeIndex)
+      const market = orderedMarkets.at(activeIndex)
       if (market) selectMarket(market)
     }
   }
@@ -228,7 +246,7 @@ export function MarketSelector({ symbol, onSelect }: Props) {
         aria-expanded={open}
         aria-controls={listboxId}
         onClick={handleToggle}
-        className="flex items-center gap-1.5 rounded-sm border border-border bg-background px-2 py-1 transition-colors duration-fast ease-spring-snappy hover:bg-accent"
+        className="flex items-center gap-1.5 rounded border border-border bg-background px-2 py-1 transition-colors duration-fast ease-spring-snappy hover:bg-accent"
       >
         <span
           data-slot="market-name"
@@ -257,7 +275,7 @@ export function MarketSelector({ symbol, onSelect }: Props) {
           type="button"
           onClick={handleClear}
           aria-label="Clear selected market"
-          className="rounded-sm border border-border bg-background px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent"
+          className="rounded border border-border bg-background px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent"
         >
           ×
         </button>
@@ -281,8 +299,8 @@ export function MarketSelector({ symbol, onSelect }: Props) {
               aria-expanded={open}
               aria-controls={listboxId}
               aria-activedescendant={
-                filtered[activeIndex]?.address
-                  ? `${comboboxId}-option-${filtered[activeIndex]?.address}`
+                orderedMarkets[activeIndex]?.address
+                  ? `${comboboxId}-option-${orderedMarkets[activeIndex]?.address}`
                   : undefined
               }
               aria-autocomplete="list"
@@ -291,7 +309,7 @@ export function MarketSelector({ symbol, onSelect }: Props) {
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={handleInputKeyDown}
               placeholder="Search markets..."
-              className="w-full rounded-sm bg-background px-2.5 py-1.5 text-xs text-foreground ring-1 ring-border outline-none placeholder:text-muted-foreground focus:ring-primary"
+              className="w-full rounded bg-background px-2.5 py-1.5 text-xs text-foreground ring-1 ring-border outline-none placeholder:text-muted-foreground focus:ring-primary"
             />
           </div>
           <ul
@@ -300,12 +318,13 @@ export function MarketSelector({ symbol, onSelect }: Props) {
             id={listboxId}
             aria-labelledby={`${comboboxId}-label`}
           >
-            {filtered.length === 0 ? (
+            {recent.length > 0 && search.trim() === "" && <li className="px-3 pb-1 pt-2 text-10 font-medium uppercase tracking-wider text-muted-foreground">Recent markets</li>}
+            {orderedMarkets.length === 0 ? (
               <li className="px-3 py-4 text-center text-xs text-muted-foreground">
                 No markets found
               </li>
             ) : (
-              filtered.map((market, index) => (
+              orderedMarkets.map((market, index) => (
                 <MarketRow
                   key={market.address}
                   id={`${comboboxId}-option-${market.address}`}

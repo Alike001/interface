@@ -7,7 +7,7 @@ export const FONT_OPTIMIZATION = {
   // Critical fonts loaded in <head> with preload
   critical: [
     {
-      family: "Inter",
+      family: "Geist",
       weights: [400, 600],
       subset: "latin",
       display: "swap",

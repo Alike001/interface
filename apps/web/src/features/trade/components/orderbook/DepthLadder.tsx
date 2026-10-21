@@ -1,3 +1,4 @@
+import { LiveIndicator } from "@workspace/ui/components/live-indicator"
 import { useEffect, useRef, useState } from "react"
 import { cn } from "@workspace/ui/lib/utils"
 import { useOrderBook } from "../../hooks/useOrderBook"
@@ -308,7 +309,7 @@ export function DepthLadder({ symbol, compact = false }: Props) {
       ref={rootRef}
       role="table"
       aria-label={`${symbol ?? "Market"} order-book depth ladder`}
-      className="flex h-full w-full flex-col overflow-hidden text-xs"
+      className="so4-density-orderbook flex h-full w-full flex-col overflow-hidden text-xs"
     >
       {/* ── Panel header ──────────────────────────────────────────────── */}
       <div className="flex items-center justify-between border-b border-border px-3 py-1.5 bg-muted/20">

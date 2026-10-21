@@ -71,7 +71,7 @@ function TableHead({
     <th
       data-slot="table-head"
       className={cn(
-        "px-5 py-3 font-medium text-muted-foreground",
+        "px-5 py-[var(--density-padding-cell)] font-medium text-muted-foreground",
         align === "right" && "text-right",
         className
       )}
@@ -108,7 +108,7 @@ function TableCell({
   return (
     <td
       data-slot="table-cell"
-      className={cn("px-5 py-3.5", align === "right" && "text-right", className)}
+      className={cn("px-5 py-[var(--density-padding-cell)]", align === "right" && "text-right", className)}
       {...props}
     />
   )

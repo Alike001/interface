@@ -11,7 +11,6 @@
  *   const link   = `${NETWORK.explorerBaseUrl}/tx/${hash}`
  */
 
-import { Networks } from "@stellar/stellar-sdk"
 import { ENV } from "./env"
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -27,8 +26,8 @@ export type NetworkConfig = {
   horizonUrl: string
   /**
    * Network passphrase used when building / signing / verifying transactions.
-   *   Testnet : StellarSdk.Networks.TESTNET
-   *   Mainnet : StellarSdk.Networks.PUBLIC
+   *   Testnet : Test SDF Network ; September 2015
+   *   Mainnet : Public Global Stellar Network ; September 2015
    */
   networkPassphrase: string
   /**
@@ -50,14 +49,14 @@ export const NETWORK: NetworkConfig =
         name: "mainnet",
         rpcUrl: ENV.RPC_URL,
         horizonUrl: ENV.HORIZON_URL,
-        networkPassphrase: Networks.PUBLIC,
+        networkPassphrase: "Public Global Stellar Network ; September 2015",
         explorerBaseUrl: "https://stellar.expert/explorer/public",
       }
     : {
         name: "testnet",
         rpcUrl: ENV.RPC_URL,
         horizonUrl: ENV.HORIZON_URL,
-        networkPassphrase: Networks.TESTNET,
+        networkPassphrase: "Test SDF Network ; September 2015",
         explorerBaseUrl: "https://stellar.expert/explorer/testnet",
       }
 

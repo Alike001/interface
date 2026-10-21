@@ -166,13 +166,13 @@ export function TradePanel({ trade }: TradePanelProps) {
             value="Long"
             className="flex-1 text-green-500 data-[state=active]:text-green-400 font-medium"
           >
-            <span aria-hidden="true">↗</span> Long
+            Long
           </TabsTrigger>
           <TabsTrigger
             value="Short"
             className="flex-1 text-red-500 data-[state=active]:text-red-400 font-medium"
           >
-            <span aria-hidden="true">↘</span> Short
+            Short
           </TabsTrigger>
           <TabsTrigger value="Swap" className="flex-1 font-medium">
             Swap
@@ -325,9 +325,9 @@ export function TradePanel({ trade }: TradePanelProps) {
       <Button
         className={`mt-1 w-full font-medium ${
           tradeFlags.isLong
-            ? "bg-green-600 text-white hover:bg-green-700"
+            ? "bg-long text-primary-foreground hover:bg-long/90"
             : tradeFlags.isShort
-              ? "bg-red-600 text-white hover:bg-red-700"
+              ? "bg-short text-primary-foreground hover:bg-short/90"
               : ""
         }`}
         disabled={!canTrade || priceValidationError !== null}

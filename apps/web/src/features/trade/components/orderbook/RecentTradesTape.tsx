@@ -1,5 +1,4 @@
-import { LiveIndicator } from "@workspace/ui/components/live-indicator"
-import { useRef } from "react"
+import { useRef, useState } from "react"
 import { useAnimatedRows } from "@workspace/ui/hooks/use-animated-rows"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import {
@@ -23,22 +22,47 @@ type Props = {
 export function RecentTradesTape({ symbol }: Props) {
   const { trades, status, isLoading } = useRecentTrades(symbol)
   const containerRef = useRef<HTMLDivElement>(null)
+  // Window large trade histories; keep a modest overscan for keyboard navigation.
+  const [scrollTop, setScrollTop] = useState(0)
+  const rowHeight = 36
+  const windowSize = 60
+  const start = trades.length > windowSize ? Math.min(Math.max(0, Math.floor(scrollTop / rowHeight) - 10), trades.length - windowSize) : 0
+  const end = trades.length > windowSize ? Math.min(trades.length, start + windowSize) : trades.length
   const attachTradeRow = useAnimatedRows(trades, (trade) => trade.id, true, isLoading)
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden text-xs">
       {/* ── Sub-header with venue and feed status indicator ───────────────── */}
       <div className="flex items-center justify-between border-b border-border px-3 py-1.5 bg-muted/20">
-        <span className="font-mono text-[11px] text-muted-foreground">{/* ds-allow: dense orderbook font size */}
+        <span className="font-mono text-11 text-muted-foreground">
           {symbol ?? "Market"} Trades
         </span>
         <div className="flex items-center gap-2">
-          <LiveIndicator status={status} />
+          {status === "connected" && (
+            <span className="inline-flex items-center gap-1 font-mono text-10 text-green-500">
+              <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" /> Live
+            </span>
+          )}
+          {status === "connecting" && (
+            <span className="inline-flex items-center gap-1 font-mono text-10 text-amber-500">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" /> Connecting…
+            </span>
+          )}
+          {status === "polling" && (
+            <span className="inline-flex items-center gap-1 font-mono text-10 text-amber-500">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" /> Polling (Fallback)
+            </span>
+          )}
+          {(status === "disconnected" || status === "error") && (
+            <span className="inline-flex items-center gap-1 font-mono text-10 text-destructive">
+              <span className="h-1.5 w-1.5 rounded-full bg-destructive" /> Disconnected
+            </span>
+          )}
         </div>
       </div>
 
       {/* ── Scrollable trades list ───────────────────────────────────────── */}
-      <div ref={containerRef} className="flex-1 overflow-y-auto px-2 py-1">
+      <div ref={containerRef} onScroll={(event) => setScrollTop(event.currentTarget.scrollTop)} className="flex-1 overflow-y-auto px-2 py-1">
         {isLoading && trades.length === 0 ? (
           <div className="flex flex-col gap-1.5 p-2" role="status" aria-label="Loading recent trades…">
             <Skeleton className="h-5 w-full" />
@@ -62,7 +86,8 @@ export function RecentTradesTape({ symbol }: Props) {
               </TableHeadRow>
             </TableHeader>
             <TableBody>
-              {trades.map((trade) => (
+              {start > 0 && <TableRow aria-hidden="true"><TableCell colSpan={4} style={{ height: start * rowHeight, padding: 0 }} /></TableRow>}
+              {trades.slice(start, end).map((trade) => (
                 <TableRow key={trade.id} ref={(node) => attachTradeRow(trade.id, node)} interactive={false} className="font-mono text-[11px]">{/* ds-allow: dense trade row font size */}
                   <TableCell className="font-medium text-foreground">
                     {formatUsd(trade.price, { decimals: 4 })}
@@ -84,6 +109,7 @@ export function RecentTradesTape({ symbol }: Props) {
                   </TableCell>
                 </TableRow>
               ))}
+              {end < trades.length && <TableRow aria-hidden="true"><TableCell colSpan={4} style={{ height: (trades.length - end) * rowHeight, padding: 0 }} /></TableRow>}
             </TableBody>
           </Table>
         )}

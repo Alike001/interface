@@ -172,7 +172,7 @@ export function ContractAddress({ contract, address }: ContractAddressProps) {
   return (
     <div className="my-4 p-3 rounded-lg border border-border bg-surface-sunken flex items-center justify-between font-mono text-xs">
       <span className="font-semibold text-text-primary">{contract}</span>
-      <span className="text-text-secondary bg-surface-canvas px-2 py-1 rounded border border-border">{address}</span>
+      <span className="text-text-secondary bg-surface-canvas px-2 py-1 rounded-sm border border-border">{address}</span>
     </div>
   )
 }
@@ -241,7 +241,7 @@ export const components: MDXComponents = {
       <code
         {...props}
         className={cn(
-          "rounded bg-surface-sunken px-1.5 py-0.5 font-mono text-sm text-text-primary",
+          "rounded-sm bg-surface-sunken px-1.5 py-0.5 font-mono text-sm text-text-primary",
           props.className
         )}
       />

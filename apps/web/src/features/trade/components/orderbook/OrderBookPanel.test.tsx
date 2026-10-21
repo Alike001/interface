@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { cleanup, render, screen } from "@testing-library/react"
+import { cleanup, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
+import { useChartPreferencesStore } from "../../store/chart-preferences-store"
 import { OrderBookPanel } from "./OrderBookPanel"
 
 // ── Mocks ────────────────────────────────────────────────────────────────────
@@ -32,19 +33,6 @@ vi.mock("../../../settings/store/preferences-store", () => ({
   usePreferencesStore: () => ({ slippageTolerance: 0.5 }),
 }))
 
-vi.mock("../../store/chart-preferences-store", () => ({
-  useChartPreferencesStore: (selector: any) => {
-    const state = {
-      period: "5m",
-      orderbookView: "trades",
-      setPeriod: vi.fn(),
-      setOrderbookView: vi.fn(),
-      reset: vi.fn(),
-    }
-    return selector(state)
-  },
-}))
-
 vi.mock("./RecentTradesTape", () => ({
   RecentTradesTape: ({ symbol }: any) => <div>Recent Trades: {symbol}</div>,
 }))
@@ -63,6 +51,9 @@ describe("OrderBookPanel", () => {
 
   beforeEach(() => {
     mockOrderBookCalls = 0
+    // The real store is deliberately persisted (OB-069), so each test starts
+    // from the documented default rather than the previous test's leftovers.
+    useChartPreferencesStore.setState({ period: "5m", orderbookView: "trades" })
   })
 
   // ═════════════════════════════════════════════════════════════════════════
@@ -183,7 +174,7 @@ describe("OrderBookPanel", () => {
     expect(screen.getByText("Depth Chart: ETH")).toBeInTheDocument()
   })
 
-  it("does not leak orderbook view state between panel instances", async () => {
+  it("keeps the chosen view across remounts (it is a persisted preference)", async () => {
     const user = userEvent.setup()
 
     const { unmount } = render(
@@ -192,15 +183,14 @@ describe("OrderBookPanel", () => {
 
     await user.click(screen.getByRole("tab", { name: /depth chart/i }))
 
-    // Unmount and remount - should reset to default view
     unmount()
 
-    // New instance with different symbol
+    // New instance with a different symbol. The view lives in the persisted
+    // chart-preferences store (OB-069), not in component state, so it is
+    // deliberately carried over.
     render(<OrderBookPanel symbol="ETH" />)
 
-    // Should default back to trades, not retain depth chart view
-    // (Note: in real app with store, this tests store isolation)
-    expect(screen.getByText("Recent Trades: ETH")).toBeInTheDocument()
+    expect(screen.getByText("Depth Chart: ETH")).toBeInTheDocument()
   })
 
   it("header displays reference data indicator", () => {
@@ -214,6 +204,78 @@ describe("OrderBookPanel", () => {
 
     expect(container).toBeInTheDocument()
     expect(screen.getByText("Reference Data")).toBeInTheDocument()
+  })
+
+  // ═════════════════════════════════════════════════════════════════════════
+  // Tab semantics (issue #858)
+  // ═════════════════════════════════════════════════════════════════════════
+
+  describe("tab semantics (#858)", () => {
+    it("puts the tabs in a named tablist", () => {
+      render(<OrderBookPanel symbol="BTC" />)
+
+      const tablist = screen.getByRole("tablist", { name: "Order book view" })
+      expect(tablist).toBeInTheDocument()
+      expect(within(tablist).getAllByRole("tab")).toHaveLength(3)
+    })
+
+    it("links the selected tab to a labelled tabpanel", () => {
+      render(<OrderBookPanel symbol="BTC" />)
+
+      const tab = screen.getByRole("tab", { name: /^trades$/i })
+      const panel = screen.getByRole("tabpanel", { name: /^trades$/i })
+
+      expect(tab).toHaveAttribute("aria-controls", panel.id)
+      expect(panel).toHaveAttribute("aria-labelledby", tab.id)
+    })
+
+    it("exposes a single tab stop with roving tabindex", () => {
+      render(<OrderBookPanel symbol="BTC" />)
+
+      expect(screen.getByRole("tab", { name: /^trades$/i })).toHaveAttribute("tabindex", "0")
+      expect(screen.getByRole("tab", { name: /order book/i })).toHaveAttribute("tabindex", "-1")
+      expect(screen.getByRole("tab", { name: /depth chart/i })).toHaveAttribute("tabindex", "-1")
+    })
+
+    it("moves between tabs with the arrow keys", async () => {
+      const user = userEvent.setup()
+      render(<OrderBookPanel symbol="BTC" />)
+
+      screen.getByRole("tab", { name: /^trades$/i }).focus()
+      await user.keyboard("{ArrowRight}")
+
+      expect(screen.getByRole("tab", { name: /depth chart/i })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      )
+
+      await user.keyboard("{ArrowRight}")
+
+      expect(screen.getByRole("tab", { name: /order book/i })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      )
+    })
+
+    it("jumps to the first and last tab with Home and End", async () => {
+      const user = userEvent.setup()
+      render(<OrderBookPanel symbol="BTC" />)
+
+      screen.getByRole("tab", { name: /^trades$/i }).focus()
+      await user.keyboard("{End}")
+
+      expect(screen.getByRole("tab", { name: /depth chart/i })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      )
+
+      await user.keyboard("{Home}")
+
+      expect(screen.getByRole("tab", { name: /order book/i })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      )
+    })
   })
 
   describe("source health (OB-049)", () => {

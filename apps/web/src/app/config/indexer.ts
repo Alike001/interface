@@ -53,12 +53,39 @@ export const INDEXER_CONFIG: IndexerConfig = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
+ * Whether this runtime has already reported the indexer's state.
+ *
+ * The app renders server-side, so the module that calls this runs once per
+ * request as well as once in the browser — without this latch, a disabled
+ * indexer logged the same warning on every route the user visited.
+ * Validation itself is pure, so skipping the repeats loses nothing.
+ */
+let hasReported = false
+
+/** Reset the once-per-runtime log latch. Test-only. */
+export function resetIndexerConfigReporting(): void {
+  hasReported = false
+}
+
+/**
  * Validate indexer config at startup.
  * Throws descriptive error if required vars are missing.
+ *
+ * Safe to call more than once: the configuration errors below are raised every
+ * time, but the informational logs are emitted only on the first call.
  */
 export function validateIndexerConfig(): void {
+  const report = !hasReported
+  hasReported = true
+
   if (!INDEXER_CONFIG.enabled) {
-    console.warn("Indexer disabled: VITE_INDEXER_GRAPHQL_URL not set")
+    if (report) {
+      console.warn(
+        "Indexer disabled: VITE_INDEXER_GRAPHQL_URL not set. " +
+          "Position and order history, fills, and fee activity fall back to " +
+          "contract-only data. See apps/web/.env.example.",
+      )
+    }
     return
   }
 
@@ -70,5 +97,7 @@ export function validateIndexerConfig(): void {
     throw new Error(`Invalid network: ${INDEXER_CONFIG.network}`)
   }
 
-  console.log(`Indexer enabled: ${INDEXER_CONFIG.graphqlUrl} (${INDEXER_CONFIG.network})`)
+  if (report) {
+    console.log(`Indexer enabled: ${INDEXER_CONFIG.graphqlUrl} (${INDEXER_CONFIG.network})`)
+  }
 }

@@ -78,7 +78,7 @@ function SortButton({ active, onClick, children }: ToggleButtonProps) {
       size="sm"
       onClick={onClick}
       className={cn(
-        "rounded px-1.5 py-0.5 text-xs transition-colors",
+        "rounded-sm px-1.5 py-0.5 text-xs transition-colors",
         active ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground",
       )}
     >

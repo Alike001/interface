@@ -149,7 +149,7 @@ export function Navbar({ variant }: Props) {
                         <WhatsNewDot show={Boolean(whatsNew && hasNewReleases)} />
                       </Link>
                     ) : (
-                      <span className="block rounded py-2 text-sm text-muted-foreground/40">
+                      <span className="block rounded-sm py-2 text-sm text-muted-foreground/40">
                         {label}
                       </span>
                     )}
@@ -159,7 +159,7 @@ export function Navbar({ variant }: Props) {
                   <li key={label}>
                     <a
                       href={href}
-                      className="block rounded py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                      className="block rounded-sm py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
                       onClick={close}
                     >
                       {label}

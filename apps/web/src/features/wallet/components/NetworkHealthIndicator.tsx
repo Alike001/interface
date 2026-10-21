@@ -11,7 +11,7 @@ export function NetworkHealthIndicator({ className }: { className?: string }) {
 
   return (
     <span
-      className={cn("inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[11px] text-muted-foreground", className)}
+      className={cn("inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-11 text-muted-foreground", className)}
       title={health.message}
       aria-label={`Network status: ${health.message}`}
     >

@@ -77,7 +77,7 @@ export function CodeDisplay({ code, label = "Active referral code", onEdit, clas
             onClick={() => copy(code)}
             aria-label="Copy code"
             className={cn(
-              "shrink-0 rounded p-0.5 transition-colors",
+              "shrink-0 rounded-sm p-0.5 transition-colors",
               copied
                 ? "text-green-400"
                 : "text-muted-foreground hover:text-foreground",

@@ -222,7 +222,7 @@ function AccountBadge({
           <div className="mt-2 space-y-0.5">
             <button
               type="button"
-              className="w-full rounded px-2 py-1.5 text-start text-sm transition-colors hover:bg-accent"
+              className="w-full rounded-sm px-2 py-1.5 text-start text-sm transition-colors hover:bg-accent"
               onClick={() => {
                 navigator.clipboard.writeText(address)
                 setOpen(false)
@@ -236,7 +236,7 @@ function AccountBadge({
                 href="https://friendbot.stellar.org"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block w-full rounded px-2 py-1.5 text-start text-sm transition-colors hover:bg-accent"
+                className="block w-full rounded-sm px-2 py-1.5 text-start text-sm transition-colors hover:bg-accent"
               >
                 Testnet Faucet
               </a>
@@ -244,7 +244,7 @@ function AccountBadge({
 
             <button
               type="button"
-              className="w-full rounded px-2 py-1.5 text-start text-sm text-destructive transition-colors hover:bg-destructive/10"
+              className="w-full rounded-sm px-2 py-1.5 text-start text-sm text-destructive transition-colors hover:bg-destructive/10"
               onClick={() => {
                 disconnect()
                 setOpen(false)

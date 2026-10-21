@@ -65,7 +65,11 @@ Use Geist Variable (`font-sans`) for everything else.
 
 ### Radius
 
-`--radius` is `0` at the root — this app's default visual language is sharp corners everywhere. The `--radius-sm/md/lg/xl/2xl/3xl/4xl` scale is derived from it via `calc()`, so as long as new UI uses `rounded-sm`/`rounded-lg`/etc. instead of an arbitrary value, changing `--radius` in one place re-skins the whole app's corner treatment.
+The radius scale is five named steps in `packages/ui/src/styles/globals.css`: `rounded-sm` (4px: buttons, inputs, badges, tabs, small chips), `rounded-md` (6px: dropdowns, tooltips, selects), `rounded-lg` (8px: cards, panels, toasts), `rounded-xl` (12px: modals, large feature sections) and `rounded-full` (pills, avatars, indicators). Always name the step: bare `rounded` is numerically `rounded-sm` but is unnamed, so it is rejected by `bun run check:tokens` (rule `bare-radius`), as are arbitrary `rounded-[...]` values.
+
+### Elevation
+
+Shadows use five named steps declared next to the radius scale (`--shadow-xs` through `--shadow-xl`): `shadow-xs` for resting controls (switch/checkbox/radio, active tab), `shadow-sm` for raised-in-place controls (switch thumb, selected segment), `shadow-md` for tooltips and small dropdown panels, `shadow-lg` for toasts, sheets and floating panels, `shadow-xl` for modals and dialogs. Their values match Tailwind's defaults, so declaring them changes no pixels; they exist so elevation is a documented decision rather than a framework default.
 
 ### Micro-typography scale
 
@@ -129,6 +133,7 @@ The `prefers-reduced-motion` media query disables all named transitions (utiliti
 - raw hex colors (`#RGB`, `#RRGGBB`, etc.) outside a small file-level allowlist
 - arbitrary Tailwind font-size classes (`text-[...]`)
 - arbitrary Tailwind radius classes (`rounded-[...]`)
+- the bare `rounded` class (use a named step, e.g. `rounded-sm`)
 
 Not everything a scanner flags is actually wrong — some values are genuinely structural (a third-party charting library's imperative color config, an HTML `<meta>` tag's `content` attribute, viewport-relative fluid type) and can't be expressed as a Tailwind token at all. For those, either:
 

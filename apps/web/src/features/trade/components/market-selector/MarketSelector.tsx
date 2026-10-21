@@ -101,7 +101,7 @@ export function MarketSelector({ markets: marketsProp, activeMarketId, onSelect,
         aria-expanded={open}
         aria-controls={open ? listboxId : undefined}
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 rounded px-2 py-1 text-sm font-semibold transition-colors hover:bg-accent"
+        className="flex items-center gap-1.5 rounded-sm px-2 py-1 text-sm font-semibold transition-colors hover:bg-accent"
       >
         {activeMarket?.name ?? "Select Market"}
         <svg
@@ -135,7 +135,7 @@ export function MarketSelector({ markets: marketsProp, activeMarketId, onSelect,
               placeholder="Search markets..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full rounded bg-background px-2.5 py-1.5 text-xs text-foreground outline-none ring-1 ring-border placeholder:text-muted-foreground focus:ring-primary"
+              className="w-full rounded-sm bg-background px-2.5 py-1.5 text-xs text-foreground outline-none ring-1 ring-border placeholder:text-muted-foreground focus:ring-primary"
             />
           </div>
           <div className="px-1 pb-1">
@@ -145,7 +145,7 @@ export function MarketSelector({ markets: marketsProp, activeMarketId, onSelect,
               </p>
             ) : (
               filtered.map((market) => (
-                <div key={market.id} className={`flex items-center rounded ${market.disabled ? "opacity-50" : "hover:bg-accent"}`}>
+                <div key={market.id} className={`flex items-center rounded-sm ${market.disabled ? "opacity-50" : "hover:bg-accent"}`}>
                   <button
                     type="button"
                     role="option"

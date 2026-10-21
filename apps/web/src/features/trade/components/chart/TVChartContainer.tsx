@@ -385,13 +385,13 @@ export function TVChartContainer({ symbol, period, marketLabel }: Props) {
     <div className="relative flex h-full w-full flex-col">
       {/* ═══ Venue & Data Source Metadata Badge ═══════════════════════════════ */}
       <div className="flex items-center justify-between border-b border-border bg-muted/20 px-3 py-1 text-xs text-muted-foreground">
-        <div className="flex items-center gap-1.5 font-mono text-[11px]">
+        <div className="flex items-center gap-1.5 font-mono text-11">
           <span className="text-muted-foreground/70">Data Source:</span>
-          <span className="rounded bg-muted px-1.5 py-0.5 font-medium text-foreground">
+          <span className="rounded-sm bg-muted px-1.5 py-0.5 font-medium text-foreground">
             {sourceType === "oracle_reference" ? `Reference Price (${venueName})` : `Execution Fills (${venueName})`}
           </span>
         </div>
-        <div className="flex items-center gap-3 font-mono text-[10px] uppercase text-muted-foreground/60">
+        <div className="flex items-center gap-3 font-mono text-10 uppercase text-muted-foreground/60">
           {legendBar && (
             <dl className="flex items-center gap-2 normal-case" aria-label="Candle values" data-testid="ohlc-legend">
               {(["open", "high", "low", "close"] as const).map((key) => (
@@ -430,7 +430,7 @@ export function TVChartContainer({ symbol, period, marketLabel }: Props) {
         {/* Stale / updating timeframe indicator */}
         {isStale && !isLoading && (
           <div
-            className="absolute top-2 right-2 z-20 flex items-center gap-1.5 rounded bg-background/80 px-2.5 py-1 text-xs text-muted-foreground backdrop-blur border border-border"
+            className="absolute top-2 right-2 z-20 flex items-center gap-1.5 rounded-sm bg-background/80 px-2.5 py-1 text-xs text-muted-foreground backdrop-blur border border-border"
             role="status"
           >
             <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />

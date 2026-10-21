@@ -76,6 +76,13 @@ const ARBITRARY_TEXT_SIZE_RE = /(?:^|[\s"'`])(?:[a-z-]+:)*text-\[[^\]]+\]/g
 const ARBITRARY_RADIUS_RE =
   /(?:^|[\s"'`])(?:[a-z-]+:)*rounded(?:-[trblse]{1,2})?-\[[^\]]+\]/g
 
+// Matches the bare Tailwind `rounded` class (no size step) inside a string
+// literal, so prose and identifiers (`const rounded = ...`) are not flagged. It is numerically
+// `rounded-sm`, but unnamed, so the radius scale (sm/md/lg/xl/full) cannot be
+// audited from usage. Hyphenated classes (`rounded-md`) and variants are fine.
+const BARE_RADIUS_RE =
+  /(?<=["'`][^"'`]*)(?<![\w{-])(?:[a-z-]+:)*rounded(?![\w.-])/g
+
 function isAllowlisted(relPath: string): string | undefined {
   for (const [prefix, reason] of Object.entries(ALLOWLIST)) {
     if (relPath === prefix || relPath.startsWith(prefix + "/")) return reason
@@ -124,6 +131,7 @@ function checkFile(absPath: string): Violation[] {
       ["raw-hex-color", HEX_COLOR_RE],
       ["arbitrary-text-size", ARBITRARY_TEXT_SIZE_RE],
       ["arbitrary-radius", ARBITRARY_RADIUS_RE],
+      ["bare-radius", BARE_RADIUS_RE],
     ] as const) {
       re.lastIndex = 0
       let match: RegExpExecArray | null

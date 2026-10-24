@@ -1,3 +1,8 @@
+"use client"
+
+import * as React from "react"
+
+import { useOverflowEdges } from "@workspace/ui/hooks/use-overflow-edges"
 import { cn } from "@workspace/ui/lib/utils"
 
 /**
@@ -5,15 +10,26 @@ import { cn } from "@workspace/ui/lib/utils"
  *
  * `Table` wraps the `<table>` in its own horizontally scrollable container so
  * wide financial tables never push the page body sideways on mobile.
+ *
+ * A scroll container with no focusable content cannot be scrolled by keyboard
+ * (axe `scrollable-region-focusable`), so the container becomes a tab stop —
+ * but only while it actually overflows, so tables that fit do not litter the
+ * page with empty tab stops. Give the `<table>` an `aria-label` or
+ * `aria-labelledby` and the stop is announced as a named region; without a
+ * name it stays an unlabelled tab stop, because an anonymous `role="region"`
+ * is worse than none.
  */
 function Table({
   className,
   containerClassName,
+  containerOnScroll,
   ...props
-}: React.ComponentProps<"table"> & { containerClassName?: string }) {
+}: React.ComponentProps<"table"> & { containerClassName?: string; containerOnScroll?: React.UIEventHandler<HTMLDivElement> }) {
   return (
     <div
+      ref={setContainer}
       data-slot="table-container"
+      onScroll={containerOnScroll}
       className={cn("w-full overflow-x-auto", containerClassName)}
     >
       <table
@@ -55,7 +71,7 @@ function TableHead({
     <th
       data-slot="table-head"
       className={cn(
-        "px-5 py-3 font-medium text-muted-foreground",
+        "px-5 py-[var(--density-padding-cell)] font-medium text-muted-foreground",
         align === "right" && "text-right",
         className
       )}
@@ -92,7 +108,7 @@ function TableCell({
   return (
     <td
       data-slot="table-cell"
-      className={cn("px-5 py-3.5", align === "right" && "text-right", className)}
+      className={cn("px-5 py-[var(--density-padding-cell)]", align === "right" && "text-right", className)}
       {...props}
     />
   )

@@ -4,12 +4,21 @@ import { cva } from "class-variance-authority"
 import { cn } from "@workspace/ui/lib/utils"
 import type { VariantProps } from "class-variance-authority"
 
+/**
+ * Canonical empty-state primitive.
+ *
+ * This module is the single source of truth for empty states in
+ * `@workspace/ui`. The former `empty.tsx` composable primitives were folded
+ * into this component, and `states.tsx` re-exports `EmptyState` rather than
+ * shipping a second implementation.
+ */
+
 // ---------------------------------------------------------------------------
 // Layout variants
 // ---------------------------------------------------------------------------
 
 const emptyStateVariants = cva(
-  "flex flex-col items-center justify-center text-center",
+  "flex flex-col items-center justify-center text-center animate-in fade-in duration-500",
   {
     variants: {
       variant: {
@@ -26,7 +35,7 @@ const emptyStateVariants = cva(
 )
 
 const iconWrapperVariants = cva(
-  "flex items-center justify-center rounded-full text-muted-foreground",
+  "flex items-center justify-center rounded-full text-muted-foreground animate-in fade-in zoom-in-75 duration-300",
   {
     variants: {
       variant: {
@@ -69,6 +78,12 @@ export interface EmptyStateProps
   description?: React.ReactNode
   /** Primary and/or secondary action nodes. */
   actions?: EmptyStateActionProps
+  /**
+   * @deprecated Use `actions.primary` instead. Kept as a shorthand so callers
+   * importing `EmptyState` from `@workspace/ui/components/states` continue to
+   * typecheck while they migrate.
+   */
+  action?: React.ReactNode
 }
 
 // ---------------------------------------------------------------------------
@@ -81,10 +96,12 @@ function EmptyState({
   title,
   description,
   actions,
+  action,
   className,
   ...props
 }: EmptyStateProps) {
-  const hasActions = actions?.primary != null || actions?.secondary != null
+  const primaryAction = actions?.primary ?? action
+  const hasActions = primaryAction != null || actions?.secondary != null
 
   return (
     <div
@@ -138,8 +155,8 @@ function EmptyState({
             variant === "page" ? "mt-2 gap-3" : "mt-1 gap-2"
           )}
         >
-          {actions.primary}
-          {actions.secondary}
+          {primaryAction}
+          {actions?.secondary}
         </div>
       )}
     </div>

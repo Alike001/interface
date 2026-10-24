@@ -9,7 +9,7 @@ const SUPPORTED_PERIODS = ["1m", "5m", "15m", "1h", "4h", "1D"] as const
 export type Period = (typeof SUPPORTED_PERIODS)[number]
 
 const SUPPORTED_CHART_VIEWS = ["book", "trades", "chart"] as const
-type SupportedChartView = (typeof SUPPORTED_CHART_VIEWS)[number]
+export type OrderbookView = (typeof SUPPORTED_CHART_VIEWS)[number]
 
 const CHART_PREFERENCES_VERSION = 1
 
@@ -17,9 +17,9 @@ export interface ChartPreferencesState {
   /** Chart timeframe: 1m, 5m, 15m, 1h, 4h, 1D. Defaults to 5m. */
   period: Period
   /** Active orderbook panel view: book/trades/chart. Defaults to "trades". */
-  orderbookView: SupportedChartView
+  orderbookView: OrderbookView
   setPeriod: (value: Period) => void
-  setOrderbookView: (value: SupportedChartView) => void
+  setOrderbookView: (value: OrderbookView) => void
   reset: () => void
 }
 
@@ -48,8 +48,8 @@ function recoverPreferences(
     : CHART_PREFERENCES_DEFAULTS.period
 
   // Validate orderbookView is one of the allowed values
-  const orderbookView = SUPPORTED_CHART_VIEWS.includes(obj.orderbookView as SupportedChartView)
-    ? (obj.orderbookView as SupportedChartView)
+  const orderbookView = SUPPORTED_CHART_VIEWS.includes(obj.orderbookView as OrderbookView)
+    ? (obj.orderbookView as OrderbookView)
     : CHART_PREFERENCES_DEFAULTS.orderbookView
 
   return { period, orderbookView }
@@ -68,7 +68,7 @@ export const useChartPreferencesStore = create<ChartPreferencesState>()(
         }
       },
 
-      setOrderbookView: (value: SupportedChartView) => {
+      setOrderbookView: (value: OrderbookView) => {
         // Only accept supported views; silently ignore invalid values
         if (SUPPORTED_CHART_VIEWS.includes(value)) {
           set({ orderbookView: value })

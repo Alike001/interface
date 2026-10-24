@@ -308,7 +308,9 @@ function TableExamples() {
       <CardHeader>
         <Heading level={3}>Distribution history</Heading>
       </CardHeader>
-      <Table>
+      {/* The name is what the scroll container announces when the table is
+          too wide to fit and becomes a keyboard-reachable region. */}
+      <Table aria-label="Distribution history">
         <TableHeader>
           <TableHeadRow>
             <TableHead>Epoch</TableHead>
@@ -434,18 +436,20 @@ export function DesignSystemPage() {
             </div>
             <div className="flex items-center gap-4">
               <select
+                aria-label="Theme"
                 value={theme}
                 onChange={(e) => setTheme(e.target.value as "light" | "dark" | "system")}
-                className="rounded border border-border bg-background px-2 py-1 text-sm"
+                className="rounded-sm border border-border bg-background px-2 py-1 text-sm"
               >
                 <option value="light">Light</option>
                 <option value="dark">Dark</option>
                 <option value="system">System</option>
               </select>
               <select
+                aria-label="Preview viewport"
                 value={viewport}
                 onChange={(e) => setViewport(e.target.value as "mobile" | "tablet" | "desktop")}
-                className="rounded border border-border bg-background px-2 py-1 text-sm"
+                className="rounded-sm border border-border bg-background px-2 py-1 text-sm"
               >
                 <option value="mobile">Mobile</option>
                 <option value="tablet">Tablet</option>

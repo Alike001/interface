@@ -1,3 +1,4 @@
+import { cn } from "@workspace/ui/lib/utils"
 import { useEffect, useMemo, useState } from "react"
 import {
   Tabs,
@@ -5,7 +6,6 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/tabs"
-import { cn } from "@workspace/ui/lib/utils"
 import { Input } from "@workspace/ui/components/input"
 import { Button } from "@workspace/ui/components/button"
 import { Separator } from "@workspace/ui/components/separator"
@@ -26,6 +26,7 @@ import { TradeInfoRows } from "./TradeInfoRows"
 import { ConfirmationDialog } from "./ConfirmationDialog"
 import { ApplyReferralCodePrompt } from "./ApplyReferralCodePrompt"
 import { LeverageSlider } from "./LeverageSlider"
+import { SlippageTolerancePopover } from "./SlippageTolerancePopover"
 import type { TradeMode, TradeType, useTradeState } from "../../hooks/useTradeState"
 import { explorerTxUrl } from "@/app/config/network"
 import { NumberInput } from "@/shared/components/NumberInput"
@@ -291,11 +292,11 @@ export function TradePanel({ trade }: TradePanelProps) {
         {advanced.advancedDisplay && (
           <div className="mt-3 space-y-3">
             <div className="space-y-1">
-                  <label htmlFor="trade-slippage" className="text-xs text-muted-foreground">Slippage tolerance</label>
-              <div className="flex items-center gap-2">
-                <SlippageInput trade={trade} />
-                <span className="text-xs text-muted-foreground">%</span>
-              </div>
+              <label className="text-xs text-muted-foreground">Slippage tolerance</label>
+              <SlippageTolerancePopover
+                slippagePct={advanced.slippagePct}
+                onSlippageChange={(value) => trade.setSlippagePct(value)}
+              />
             </div>
             <p className="text-xs text-muted-foreground">
               This sets the maximum allowable slippage for the order. Orders will revert if the fill price exceeds this threshold.
@@ -326,9 +327,9 @@ export function TradePanel({ trade }: TradePanelProps) {
       <Button
         className={`mt-1 w-full font-medium ${
           tradeFlags.isLong
-            ? "bg-green-600 text-white hover:bg-green-700"
+            ? "bg-long text-primary-foreground hover:bg-long/90"
             : tradeFlags.isShort
-              ? "bg-red-600 text-white hover:bg-red-700"
+              ? "bg-short text-primary-foreground hover:bg-short/90"
               : ""
         }`}
         disabled={!canTrade || priceValidationError !== null}
@@ -370,47 +371,13 @@ export function TradePanel({ trade }: TradePanelProps) {
   )
 }
 
-function SlippageInput({ trade }: { trade: TradeController }) {
-  const [draft, setDraft] = useState(String(trade.advanced.slippagePct))
-
-  useEffect(() => {
-    setDraft(String(trade.advanced.slippagePct))
-  }, [trade.advanced.slippagePct])
-
-  const commit = (value: string) => {
-    const parsed = Number(value)
-    if (!value || value === "." || !Number.isFinite(parsed)) return
-    trade.setSlippagePct(Math.min(10, Math.max(0, parsed)))
-  }
-
-  return (
-    <NumberInput
-      id="trade-slippage"
-      value={draft}
-      onValueChange={(value) => {
-        setDraft(value)
-        commit(value)
-      }}
-      onBlur={() => {
-        const parsed = Number(draft)
-        const normalized = Number.isFinite(parsed) ? Math.min(10, Math.max(0, parsed)) : trade.advanced.slippagePct
-        setDraft(String(normalized))
-        trade.setSlippagePct(normalized)
-      }}
-      inputMode="decimal"
-      aria-label="Slippage tolerance percentage"
-      className="pe-10 font-mono text-sm"
-    />
-  )
-}
-
 // ── Pay / Receive inputs ─────────────────────────────────────────────────────
 
 function TradeInputs({
   trade,
   onValidationChange,
 }: {
-  trade: ReturnType<typeof useTradeState>
+  trade: TradeController
   onValidationChange: (error: string | null) => void
 }) {
   const { fromAmount, fromTokenAddress, toTokenAddress, collateralAddress, tradeFlags, setFromAmount, switchTokens } = trade
@@ -427,19 +394,24 @@ function TradeInputs({
 
   const handleAmountChange = (value: string) => {
     setFromAmount(value)
+    let error: string | null = null
     if (value) {
-      const validation = validateAmount(value, { maxAmount: walletBalance })
-      setAmountValidationError(validation.error)
-      onValidationChange(validation.error)
-      if (!validation.error && walletBalance !== undefined) {
-        const balance = validateBalance(parseFloat(value), walletBalance)
-        setAmountValidationError(balance.error)
-        onValidationChange(balance.error)
+      error = validateAmount(value, { maxAmount: walletBalance }).error
+      if (!error && walletBalance !== undefined) {
+        error = validateBalance(parseFloat(value), walletBalance).error
       }
-    } else {
-      setAmountValidationError(null)
-      onValidationChange(null)
     }
+    setAmountValidationError(error)
+    onValidationChange(error)
+  }
+
+  function handleFill(pct: number) {
+    if (walletBalance === undefined) return
+    if (pct === 1) {
+      handleAmountChange(walletBalance.toString())
+      return
+    }
+    handleAmountChange(String(walletBalance * pct))
   }
 
   return (
@@ -475,6 +447,24 @@ function TradeInputs({
           <p className="text-xs text-red-500 [overflow-wrap:anywhere]">{amountValidationError}</p>
         )}
       </div>
+
+      {/* Size quick-fill buttons */}
+      {walletBalance !== undefined && walletBalance > 0 && (
+        <div className="flex flex-wrap gap-1 pt-1">
+          {[0.25, 0.5, 0.75, 1].map((pct) => (
+            <Button
+              key={pct}
+              type="button"
+              variant="outline"
+              size="xs"
+              onClick={() => handleFill(pct)}
+              className="text-xs shrink-0"
+            >
+              {pct === 1 ? "Max" : `${Math.round(pct * 100)}%`}
+            </Button>
+          ))}
+        </div>
+      )}
 
       {/* Swap arrow */}
       {tradeFlags.isSwap && (

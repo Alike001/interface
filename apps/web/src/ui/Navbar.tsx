@@ -13,6 +13,7 @@ import {
   useMobileMenu,
 } from "./nav/primitives"
 import { ConnectButton } from "@/features/wallet/components/ConnectButton"
+import { NetworkHealthIndicator } from "@/features/wallet/components/NetworkHealthIndicator"
 import { WhatsNew } from "@/features/changelog/components/WhatsNew"
 import { WhatsNewDot } from "@/features/changelog/components/WhatsNewDot"
 import { useWhatsNewIndicator } from "@/features/changelog/whats-new"
@@ -106,6 +107,7 @@ export function Navbar({ variant }: Props) {
         {/* Actions */}
         <div className="flex min-w-0 shrink-0 items-center gap-1.5 sm:gap-2">
           {isApp && <WhatsNew />}
+          {isApp && <NetworkHealthIndicator />}
           <ThemeToggle />
           <ConnectButton />
           {!isApp && (
@@ -147,7 +149,7 @@ export function Navbar({ variant }: Props) {
                         <WhatsNewDot show={Boolean(whatsNew && hasNewReleases)} />
                       </Link>
                     ) : (
-                      <span className="block rounded py-2 text-sm text-muted-foreground/40">
+                      <span className="block rounded-sm py-2 text-sm text-muted-foreground/40">
                         {label}
                       </span>
                     )}
@@ -157,7 +159,7 @@ export function Navbar({ variant }: Props) {
                   <li key={label}>
                     <a
                       href={href}
-                      className="block rounded py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                      className="block rounded-sm py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
                       onClick={close}
                     >
                       {label}

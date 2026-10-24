@@ -17,6 +17,7 @@ import {
   riskSeverity,
 } from "../../lib/position-risk"
 import { CollateralDialog } from "./CollateralDialog"
+import { ClosePositionDialog } from "./ClosePositionDialog"
 import type { Column } from "@workspace/ui/components/data-table"
 import type { Position } from "../../hooks/usePositions"
 import { useWalletStore } from "@/features/wallet/store/wallet-store"
@@ -67,13 +68,8 @@ export function PositionsList({ onSelectPosition }: Props) {
   const [closing, setClosing] = useState<string | null>(null)
   const [claiming, setClaiming] = useState<string | null>(null)
   const [dialogPosition, setDialogPosition] = useState<Position | null>(null)
+  const [closeDialogPosition, setCloseDialogPosition] = useState<Position | null>(null)
   const [dialogMode, setDialogMode] = useState<"add" | "remove" | null>(null)
-
-  async function handleClose(position: Position) {
-    setClosing(position.key)
-    await submitClose(position, { isFull: true, sizeDeltaUsd: position.sizeUsd })
-    setClosing(null)
-  }
 
   function handleShare(position: Position) {
     const url = `${window.location.origin}/trade?market=${encodeURIComponent(position.indexToken)}&type=${position.isLong ? "long" : "short"}`
@@ -106,7 +102,8 @@ export function PositionsList({ onSelectPosition }: Props) {
           <TokenIcon symbol={p.indexToken} size={20} />
           <span className="font-medium">{p.marketName}</span>
           <StatusBadge variant={p.isLong ? "success" : "danger"}>
-            {p.isLong ? "Long" : "Short"}
+            <span aria-hidden="true">{p.isLong ? "↗" : "↘"}</span>
+            <span>{p.isLong ? "Long" : "Short"}</span>
           </StatusBadge>
         </div>
       ),
@@ -174,12 +171,15 @@ export function PositionsList({ onSelectPosition }: Props) {
       header: "PnL",
       accessor: (p) => {
         const role = p.pnlAfterFees >= 0 ? "positive" : "negative"
+        const direction = p.pnlAfterFees >= 0 ? "gain" : "loss"
+        const symbol = p.pnlAfterFees >= 0 ? "▲" : "▼"
         return (
-          <>
+          <span className="inline-flex items-center gap-1" aria-label={`PnL ${direction}`}>
+            <span aria-hidden="true" className="font-semibold">{symbol}</span>
             <Numeric value={p.pnlAfterFees} format="usd" role={role} rolling />
             {" "}
             <Numeric value={p.pnlPercent} format="pct" role={role} rolling />
-          </>
+          </span>
         )
       },
     },
@@ -256,7 +256,7 @@ export function PositionsList({ onSelectPosition }: Props) {
             pending={closing === p.key || isBusy(p.key)}
             onClick={(e) => {
               e.stopPropagation()
-              void handleClose(p)
+              setCloseDialogPosition(p)
             }}
           >
             {closing === p.key ? "\u2026" : "Close"}
@@ -314,6 +314,21 @@ export function PositionsList({ onSelectPosition }: Props) {
             setDialogMode(null)
           }
           return hash
+        }}
+      />
+      <ClosePositionDialog
+        position={closeDialogPosition}
+        open={closeDialogPosition !== null}
+        onClose={() => setCloseDialogPosition(null)}
+        onConfirm={async (payload) => {
+          if (!closeDialogPosition) return
+          setClosing(closeDialogPosition.key)
+          try {
+            await submitClose(closeDialogPosition, payload)
+          } finally {
+            setClosing(null)
+            setCloseDialogPosition(null)
+          }
         }}
       />
     </>

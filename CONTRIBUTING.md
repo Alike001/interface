@@ -360,6 +360,15 @@ force-pushing over review history, unless asked to rebase.
 Leave **Allow edits by maintainers** ticked (it is on by default) so a
 maintainer can rebase or touch up your branch without a round trip.
 
+### Templates and accessibility
+
+Use the issue form that best matches the report: bug, feature, or design
+proposal. Application changes should use the `app.md` pull-request template;
+the design-system and documentation templates remain available for their
+specialized changes. UI contributors must record keyboard, focus, screen-reader,
+and 44×44px touch-target checks in the PR. The reusable audit checklist lives
+in [`docs/accessibility-audit.md`](docs/accessibility-audit.md).
+
 ---
 
 ## Project-specific gotchas

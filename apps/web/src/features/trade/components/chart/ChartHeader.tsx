@@ -49,9 +49,9 @@ export function ChartHeader({ symbol, onSelectToken }: Props) {
         <span
           className={
             isPositive
-              ? "font-mono text-green-500"
+              ? "font-mono text-long"
               : isNegative
-                ? "font-mono text-red-500"
+                ? "font-mono text-short"
                 : "font-mono text-muted-foreground"
           }
         >

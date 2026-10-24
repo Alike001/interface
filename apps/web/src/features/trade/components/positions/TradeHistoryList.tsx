@@ -15,10 +15,7 @@ import { HistoryFilters } from "./HistoryFilters"
 import type {FillFilters, FillRecord} from "../../lib/order-history";
 import type { Column } from "@workspace/ui/components/data-table"
 import { useWalletStore } from "@/features/wallet/store/wallet-store"
-
-function formatTimestamp(timestamp: number): string {
-  return new Date(timestamp).toLocaleString()
-}
+import { RelativeTime } from "@/shared/components/RelativeTime"
 
 export function TradeHistoryList() {
   const account = useWalletStore((state) => state.address)
@@ -62,7 +59,7 @@ export function TradeHistoryList() {
     {
       id: "time",
       header: "Executed",
-      accessor: (row) => <span className="text-muted-foreground">{formatTimestamp(row.timestamp)}</span>,
+      accessor: (row) => <RelativeTime className="text-muted-foreground" value={row.timestamp} />,
     },
   ]
 

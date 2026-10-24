@@ -1,7 +1,16 @@
 import { Button } from "@workspace/ui/components/button"
+import { EmptyState } from "@workspace/ui/components/empty-state"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import { Text } from "@workspace/ui/components/text"
 import { cn } from "@workspace/ui/lib/utils"
+
+/**
+ * List and table state treatments.
+ *
+ * `EmptyState` lives in `empty-state.tsx` — the single empty-state primitive.
+ * It is re-exported here so existing imports from
+ * `@workspace/ui/components/states` keep working.
+ */
 
 /**
  * Skeleton placeholder for a list or table body.
@@ -32,50 +41,6 @@ function LoadingState({
       {Array.from({ length: rows }, (_, i) => (
         <Skeleton key={i} className={cn("h-10 w-full", rowClassName)} />
       ))}
-    </div>
-  )
-}
-
-type EmptyStateProps = React.ComponentProps<"div"> & {
-  icon?: React.ReactNode
-  title: string
-  description?: string
-  action?: React.ReactNode
-}
-
-function EmptyState({
-  icon,
-  title,
-  description,
-  action,
-  className,
-  ...props
-}: EmptyStateProps) {
-  return (
-    <div
-      data-slot="empty-state"
-      className={cn(
-        "flex flex-col items-center justify-center gap-3 px-4 py-12 text-center",
-        className
-      )}
-      {...props}
-    >
-      {icon && (
-        <div className="flex size-12 items-center justify-center rounded-full bg-muted/40 text-muted-foreground/50">
-          {icon}
-        </div>
-      )}
-      <div>
-        <Text size="base" weight="medium" tone="default">
-          {title}
-        </Text>
-        {description && (
-          <Text size="sm" tone="muted" className="mt-0.5">
-            {description}
-          </Text>
-        )}
-      </div>
-      {action}
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import { Tooltip, TooltipContent, TooltipTrigger } from "@workspace/ui/components/tooltip"
+import { Popover, PopoverContent, PopoverDescription, PopoverTitle, PopoverTrigger } from "@workspace/ui/components/popover"
 import { Numeric } from "@workspace/ui/components/numeric"
 import { useTradeFees } from "../../hooks/useTradeFees"
 import { useFundingRate } from "../../hooks/useFundingRate"
@@ -57,7 +58,7 @@ export function TradeInfoRows({
     return (
       <div className="min-w-0 space-y-1 overflow-x-hidden text-xs">
         <Row label="Min. receive" value="-" />
-        <Row label="Swap fee" value={fees.positionFeeUsd !== null ? <Numeric value={fees.positionFeeUsd} format="usd" role="neutral" /> : "Unavailable"} />
+        <FeeBreakdown fees={fees} label="Swap fee" />
         <Row label="Price impact" value={fees.priceImpactUsd !== null ? <Numeric value={fees.priceImpactUsd} format="usd" role="neutral" /> : "Unavailable"} />
         <ExecutionFeeRow value={executionFeeDisplay} />
       </div>
@@ -84,13 +85,32 @@ export function TradeInfoRows({
             : "-"
         }
       />
-      <Row label="Position fee" value={fees.positionFeeUsd !== null ? <Numeric value={fees.positionFeeUsd} format="usd" role="neutral" /> : "Unavailable"} />
+      <FeeBreakdown fees={fees} label="Position fee" priceImpactPct={priceImpactPct} />
       <Row label="Price impact" value={priceImpactPct !== null ? <Numeric value={priceImpactPct} format="pct" role={Math.abs(priceImpactPct) > 0.5 ? "danger" : "neutral"} /> : "Unavailable"} />
       <ExecutionFeeRow value={executionFeeDisplay} />
       <div className="border-t border-border pt-1">
         <Row label="Total fees" value={fees.totalFeesUsd !== null ? <Numeric value={fees.totalFeesUsd} format="usd" role="neutral" /> : "Unavailable"} bold />
       </div>
     </div>
+  )
+}
+
+function FeeBreakdown({ fees, label, priceImpactPct }: { fees: ReturnType<typeof useTradeFees>; label: string; priceImpactPct?: number | null }) {
+  return (
+    <Popover>
+      <div className="flex min-w-0 items-center justify-between gap-2">
+        <PopoverTrigger className="shrink-0 cursor-help text-muted-foreground underline decoration-dotted underline-offset-2">{label}</PopoverTrigger>
+        <span className="min-w-0 truncate text-right">{fees.positionFeeUsd !== null ? <Numeric value={fees.positionFeeUsd} format="usd" role="neutral" /> : "Unavailable"}</span>
+      </div>
+      <PopoverContent align="end" className="w-80">
+        <PopoverTitle>What you&apos;ll pay</PopoverTitle>
+        <PopoverDescription>Estimated costs from the current verified fee configuration.</PopoverDescription>
+        <dl className="mt-3 space-y-1.5">
+          {fees.feesBreakdown.map((item) => <div key={item.label} className="flex justify-between gap-4"><dt className="text-muted-foreground">{item.label}</dt><dd className="font-mono tabular-nums">{item.valueUsd === null ? "—" : <Numeric value={item.valueUsd} format="usd" role="neutral" />}</dd></div>)}
+          {priceImpactPct !== undefined && <div className="flex justify-between gap-4 border-t border-border pt-1.5"><dt className="text-muted-foreground">Price impact</dt><dd>{priceImpactPct === null ? "—" : <Numeric value={priceImpactPct} format="pct" role="neutral" />}</dd></div>}
+        </dl>
+      </PopoverContent>
+    </Popover>
   )
 }
 

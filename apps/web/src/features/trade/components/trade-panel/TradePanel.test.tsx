@@ -148,6 +148,14 @@ vi.mock("@workspace/ui/components/tabs", async () => {
     TabsContent,
   }
 })
+// Keep the real slippage-popover logic under test with a lightweight portal shell.
+vi.mock("@workspace/ui/components/popover", () => ({
+  Popover: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  PopoverTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  PopoverContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  PopoverTitle: ({ children }: { children: React.ReactNode }) => <p>{children}</p>,
+  PopoverDescription: ({ children }: { children: React.ReactNode }) => <p>{children}</p>,
+}))
 vi.mock("@workspace/ui/components/slider", () => ({
   Slider: () => null,
 }))

@@ -20,6 +20,10 @@ describe("MobileTradeNav", () => {
     render(<MobileTradeNav active="trade" onChange={vi.fn()} />)
     expect(screen.getAllByRole("tab")).toHaveLength(4)
   })
+
+  it("keeps a minimum touch target below the safe-area inset", () => {
+    expect(screen.getByRole("tablist").className).toContain("max(0.75rem,env(safe-area-inset-bottom))")
+  })
 })
 
 describe("mobileViewClassName", () => {

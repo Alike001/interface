@@ -46,7 +46,7 @@ function renderNodes(nodes: Array<InlineNode>, query?: string): ReactNode {
         return <Fragment key={idx}>{renderHighlighted(node.value, query)}</Fragment>
       case "code":
         return (
-          <code key={idx} className="rounded bg-muted px-1 py-0.5 font-mono text-14">
+          <code key={idx} className="rounded-sm bg-muted px-1 py-0.5 font-mono text-14">
             {node.value}
           </code>
         )

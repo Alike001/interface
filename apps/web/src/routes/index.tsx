@@ -20,7 +20,7 @@ function LandingPage() {
     // GMX's landing is dark-only — force the `.dark` token scope on this
     // subtree regardless of the user's theme setting (docs/gf_3/001_theme_update.md §7),
     // without touching <html> so /trade, /pools, etc. keep honoring it.
-    <div className="dark min-h-svh bg-background font-landing-sans text-foreground antialiased">
+    <div className="dark min-h-svh bg-background font-sans text-foreground antialiased">
       <HeaderMenu />
       {/* Lighthouse flagged "Document does not have a main landmark" — every
           section below is the page's actual content, HeaderMenu is the only

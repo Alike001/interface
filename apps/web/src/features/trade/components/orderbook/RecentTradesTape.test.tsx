@@ -53,7 +53,19 @@ describe("RecentTradesTape", () => {
   })
 
   beforeEach(() => {
+    // jsdom has no matchMedia; animated rows use reduced-motion detection.
+    vi.stubGlobal("matchMedia", vi.fn().mockImplementation(() => ({
+      matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn(),
+      addListener: vi.fn(), removeListener: vi.fn(),
+    })))
     mockUseRecentTrades.mockReturnValue(createMockResult())
+  })
+
+  it("virtualizes large trade histories rather than mounting every row", () => {
+    const items = Array.from({ length: 400 }, (_, i) => createMockTrade(String(i), { price: 50000 + i }))
+    mockUseRecentTrades.mockReturnValue(createMockResult({ trades: items }))
+    render(<RecentTradesTape symbol="TWBTC" />)
+    expect(screen.getAllByRole("row").length).toBeLessThanOrEqual(62)
   })
 
   describe("rendering and layout", () => {
@@ -411,6 +423,31 @@ describe("RecentTradesTape", () => {
 
       const unknownIndicator = screen.getByTitle("Side unknown")
       expect(unknownIndicator).toBeInTheDocument()
+    })
+  })
+
+  // Issue #858: nothing inside the tape is focusable, so the scroll container
+  // itself has to be a named tab stop or the list cannot be reached or
+  // scrolled by keyboard (axe scrollable-region-focusable).
+  describe("scroll region accessibility (#858)", () => {
+    it("exposes the scrollable list as a focusable, named region", () => {
+      render(<RecentTradesTape symbol="TWBTC" />)
+
+      const region = screen.getByRole("region", {
+        name: "Recent trades for TWBTC",
+      })
+      expect(region).toHaveAttribute("tabindex", "0")
+      expect(region.className).toContain("overflow-y-auto")
+    })
+
+    it("names the region even without a selected market", () => {
+      render(<RecentTradesTape symbol={undefined} />)
+
+      expect(
+        screen.getByRole("region", {
+          name: "Recent trades for the selected market",
+        }),
+      ).toBeInTheDocument()
     })
   })
 

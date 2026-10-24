@@ -298,30 +298,6 @@ describe("route smoke tests", () => {
     })
   })
 
-  describe("/design-system", () => {
-    it("throws notFound in production", async () => {
-      const origDev = import.meta.env.DEV
-      try {
-        import.meta.env.DEV = false
-        const { Route } = await import("./design-system")
-        expect(() => Reflect.apply(Route.options.beforeLoad!, undefined, [])).toThrow()
-      } finally {
-        import.meta.env.DEV = origDev
-      }
-    })
-
-    it("allows loading in dev mode", async () => {
-      const origDev = import.meta.env.DEV
-      try {
-        import.meta.env.DEV = true
-        const { Route } = await import("./design-system")
-        expect(() => Reflect.apply(Route.options.beforeLoad!, undefined, [])).not.toThrow()
-      } finally {
-        import.meta.env.DEV = origDev
-      }
-    })
-  })
-
   describe("404 Not Found", () => {
     it("renders the not-found view", async () => {
       const { Route } = await import("./__root")

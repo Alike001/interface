@@ -3,9 +3,6 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
 @import "@fontsource-variable/geist-mono";
-@import "@fontsource-variable/archivo";
-@import "@fontsource/space-mono/400.css";
-@import "@fontsource/space-mono/700.css";
 
 @custom-variant dark (&:is(.dark *));
 @source "../../../apps/**/*.{ts,tsx}";
@@ -287,8 +284,6 @@
     --color-gmx-sponsors-border: oklch(0.8933 0.0194 276.32); /* #D8DBE9 — SponsorsSection top border */
     --color-gmx-card-shadow: oklch(0 0 0);                    /* #000 — ProgramCards drop shadow */
 
-    --font-landing-sans: "Archivo Variable", "Geist Variable", sans-serif;
-    --font-landing-code: "Space Mono", "Geist Mono Variable", monospace;
 
     /* GMX line-heights — headings tighter than 1.0 is the signature look */
     --leading-heading-lg: 0.98;

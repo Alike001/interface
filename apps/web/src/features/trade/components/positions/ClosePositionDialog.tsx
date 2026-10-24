@@ -11,6 +11,8 @@ import { Input } from "@workspace/ui/components/input"
 import type { Position } from "../../hooks/usePositions"
 import { formatUsd } from "@/shared/lib/format"
 
+const PARTIAL_PRESETS = [25, 50, 75] as const
+
 export type ClosePositionPayload = {
   isFull: boolean
   sizeDeltaUsd: number
@@ -43,6 +45,10 @@ export function ClosePositionDialog({ position, open, onClose, onConfirm }: Prop
   const isValid = closeType === "full" || (partialAmount > 0 && !validationError)
   const sizeDeltaUsd = closeType === "full" ? position.sizeUsd : partialAmount
 
+  function setPreset(percent: number) {
+    setPartialUsd((position.sizeUsd * percent / 100).toFixed(2))
+  }
+
   function handleConfirm() {
     if (!isValid) return
     onConfirm({ isFull: closeType === "full", sizeDeltaUsd })
@@ -67,7 +73,8 @@ export function ClosePositionDialog({ position, open, onClose, onConfirm }: Prop
             <div className="flex justify-between">
               <span className="text-muted-foreground text-xs">Side</span>
               <span className={`text-xs font-medium ${position.isLong ? "text-green-500" : "text-red-500"}`}>
-                {position.isLong ? "Long" : "Short"}
+                <span aria-hidden="true">{position.isLong ? "↗" : "↘"}</span>
+                <span>{position.isLong ? "Long" : "Short"}</span>
               </span>
             </div>
           </div>
@@ -76,7 +83,7 @@ export function ClosePositionDialog({ position, open, onClose, onConfirm }: Prop
             <button
               type="button"
               onClick={() => setCloseType("full")}
-              className={`flex-1 rounded px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`flex-1 rounded-sm px-3 py-1.5 text-xs font-medium transition-colors ${
                 closeType === "full"
                   ? "bg-muted text-foreground"
                   : "text-muted-foreground hover:text-foreground"
@@ -87,7 +94,7 @@ export function ClosePositionDialog({ position, open, onClose, onConfirm }: Prop
             <button
               type="button"
               onClick={() => setCloseType("partial")}
-              className={`flex-1 rounded px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`flex-1 rounded-sm px-3 py-1.5 text-xs font-medium transition-colors ${
                 closeType === "partial"
                   ? "bg-muted text-foreground"
                   : "text-muted-foreground hover:text-foreground"
@@ -119,6 +126,25 @@ export function ClosePositionDialog({ position, open, onClose, onConfirm }: Prop
                 <span className="absolute inset-inline-end-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
                   USD
                 </span>
+              </div>
+              <div className="flex gap-1.5 pt-1" aria-label="Partial close presets">
+                {PARTIAL_PRESETS.map((percent) => (
+                  <button
+                    key={percent}
+                    type="button"
+                    className="flex-1 rounded border border-border px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    onClick={() => setPreset(percent)}
+                    aria-label={`Close ${percent}% of position`}
+                  >
+                    {percent}%
+                  </button>
+                ))}
+              </div>
+              <div className="rounded border border-border/60 bg-muted/20 p-2 text-xs" aria-live="polite">
+                <div className="flex justify-between gap-3">
+                  <span className="text-muted-foreground">Position after close</span>
+                  <span className="font-mono font-medium">{formatUsd(Math.max(0, position.sizeUsd - partialAmount))}</span>
+                </div>
               </div>
               {validationError && (
                 <p className="text-xs text-red-500">{validationError}</p>

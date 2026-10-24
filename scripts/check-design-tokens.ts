@@ -50,7 +50,7 @@ const ALLOWLIST: Record<string, string> = {
   "apps/web/src/features/trade/components/chart/TVChartContainer.tsx":
     "Configures the lightweight-charts library's imperative JS API (chart series colors, price-line colors), which requires literal color strings — there is no Tailwind-class equivalent for a third-party canvas-rendering library's config object.",
   "apps/docs/src/lib/mermaid.ts":
-    "Serialises two pre-rendered SVG theme variants (lightSvg/darkSvg) at build time, which needs literal fill/stroke values in the markup: the DS role tokens these mirror (--surface-*, --text-*, --border, --primary) are only declared under `.dark` in globals.css, so a var() reference would leave the light diagram uncoloured. Same constraint as chart-theme.ts below — the palettes are confined to the two `colors` objects in buildFlowchartSvg/buildSequenceSvg.",
+    "Serialises two pre-rendered SVG theme variants (lightSvg/darkSvg) at build time, which needs literal fill/stroke values in the markup: the DS role tokens these mirror (--surface-*, --text-*, --border, --primary) are CSS custom properties, which a standalone pre-rendered SVG cannot resolve. Same constraint as chart-theme.ts below — the palettes are confined to the two `colors` objects in buildFlowchartSvg/buildSequenceSvg.",
   "apps/web/src/features/trade/lib/chart-theme.ts":
     "sRGB fallback mirrors of the globals.css tokens, plus a canvas-based color parser sentinel. lightweight-charts parses colors itself and only understands hex/rgb/hsl/named values, so these cannot be oklch() token references; they are needed for SSR, unit tests, and first paint before the stylesheet applies.",
 }
@@ -75,6 +75,13 @@ const ARBITRARY_TEXT_SIZE_RE = /(?:^|[\s"'`])(?:[a-z-]+:)*text-\[[^\]]+\]/g
 // Matches Tailwind arbitrary-value radius utilities: rounded-[...], rounded-t-[...], etc.
 const ARBITRARY_RADIUS_RE =
   /(?:^|[\s"'`])(?:[a-z-]+:)*rounded(?:-[trblse]{1,2})?-\[[^\]]+\]/g
+
+// Matches the bare Tailwind `rounded` class (no size step) inside a string
+// literal, so prose and identifiers (`const rounded = ...`) are not flagged. It is numerically
+// `rounded-sm`, but unnamed, so the radius scale (sm/md/lg/xl/full) cannot be
+// audited from usage. Hyphenated classes (`rounded-md`) and variants are fine.
+const BARE_RADIUS_RE =
+  /(?<=["'`][^"'`]*)(?<![\w{-])(?:[a-z-]+:)*rounded(?![\w.-])/g
 
 function isAllowlisted(relPath: string): string | undefined {
   for (const [prefix, reason] of Object.entries(ALLOWLIST)) {
@@ -124,6 +131,7 @@ function checkFile(absPath: string): Violation[] {
       ["raw-hex-color", HEX_COLOR_RE],
       ["arbitrary-text-size", ARBITRARY_TEXT_SIZE_RE],
       ["arbitrary-radius", ARBITRARY_RADIUS_RE],
+      ["bare-radius", BARE_RADIUS_RE],
     ] as const) {
       re.lastIndex = 0
       let match: RegExpExecArray | null

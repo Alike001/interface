@@ -1,9 +1,10 @@
+import { LiveIndicator } from "@workspace/ui/components/live-indicator"
 import { useEffect, useRef, useState } from "react"
 import { cn } from "@workspace/ui/lib/utils"
 import { useOrderBook } from "../../hooks/useOrderBook"
 import { useRecentTrades } from "../../hooks/useRecentTrades"
 import type { OrderBookLevel } from "../../hooks/useOrderBook"
-import { formatUsd } from "@/shared/lib/format"
+import { formatToken, formatUsd } from "@/shared/lib/format"
 
 type Props = {
   symbol: string | undefined
@@ -54,7 +55,7 @@ function DepthRow({ level, side, compact, onHover }: RowProps) {
     <div
       role="row"
       className={cn(
-        "relative flex items-center font-mono text-[11px] select-none cursor-pointer transition-colors", // ds-allow: dense orderbook row font size
+        "relative flex items-center font-mono text-11 select-none cursor-pointer transition-colors",
         compact ? "h-[18px]" : "h-[22px]",
         "hover:bg-muted/30 focus-within:bg-muted/30",
       )}
@@ -104,10 +105,7 @@ function DepthRow({ level, side, compact, onHover }: RowProps) {
         role="cell"
         className="relative z-10 w-[30%] shrink-0 px-1 text-right tabular-nums text-foreground/80"
       >
-        {level.size.toLocaleString(undefined, {
-          minimumFractionDigits: 3,
-          maximumFractionDigits: 4,
-        })}
+        {formatToken(level.size, "", { decimals: 4, minDecimals: 3 }).trim()}
       </span>
 
       {/* cumulative total */}
@@ -115,10 +113,7 @@ function DepthRow({ level, side, compact, onHover }: RowProps) {
         role="cell"
         className="relative z-10 flex-1 px-2 text-right tabular-nums text-muted-foreground"
       >
-        {level.total.toLocaleString(undefined, {
-          minimumFractionDigits: 3,
-          maximumFractionDigits: 4,
-        })}
+        {formatToken(level.total, "", { decimals: 4, minDecimals: 3 }).trim()}
       </span>
     </div>
   )
@@ -147,14 +142,11 @@ function DepthInspection({
         marginRight: side === "ask" ? "0.5rem" : undefined,
       }}
     >
-      <div className="space-y-0.5 text-[11px] font-mono whitespace-nowrap"> {/* ds-allow: tooltip detail font size */}
+      <div className="space-y-0.5 text-11 font-mono whitespace-nowrap">
         <div className="flex justify-between gap-4">
           <span className="text-muted-foreground">Cumulative Qty:</span>
           <span className="text-foreground font-medium">
-            {level.total.toLocaleString(undefined, {
-              minimumFractionDigits: 4,
-              maximumFractionDigits: 6,
-            })}
+            {formatToken(level.total, "", { decimals: 6, minDecimals: 4 }).trim()}
           </span>
         </div>
         <div className="flex justify-between gap-4">
@@ -169,7 +161,7 @@ function DepthInspection({
             {formatUsd(notional, { decimals: 2 })}
           </span>
         </div>
-        <div className="mt-1 pt-1 border-t border-border text-[10px] text-muted-foreground italic"> {/* ds-allow: tooltip disclaimer font size */}
+        <div className="mt-1 pt-1 border-t border-border text-10 text-muted-foreground italic">
           Snapshot estimate
         </div>
       </div>
@@ -184,7 +176,7 @@ function ColumnHeaders({ compact }: { compact: boolean }) {
     <div
       role="row"
       className={cn(
-        "flex items-center border-b border-border/60 font-mono text-[10px] text-muted-foreground", // ds-allow: dense orderbook header font size
+        "flex items-center border-b border-border/60 font-mono text-10 text-muted-foreground",
         compact ? "h-[16px]" : "h-[20px]",
       )}
     >
@@ -233,7 +225,7 @@ function SpreadRow({
     <div
       role="separator"
       aria-label="Spread"
-      className="flex items-center justify-between border-y border-border/60 bg-muted/20 px-2 py-[3px] font-mono text-[10px] text-muted-foreground" // ds-allow: dense orderbook spread font size
+      className="flex items-center justify-between border-y border-border/60 bg-muted/20 px-2 py-[3px] font-mono text-10 text-muted-foreground"
     >
       <span>
         Spread{" "}
@@ -249,14 +241,14 @@ function SpreadRow({
       {referencePrice !== null && (
         <span
           title={referencePriceLabel}
-          className="relative inline-flex items-center px-1 py-0.5 rounded overflow-hidden"
+          className="relative inline-flex items-center px-1 py-0.5 rounded-sm overflow-hidden"
         >
           {flashDirection && (
             <span
               key={flashKeyRef.current}
               aria-hidden="true"
               className={cn(
-                "pointer-events-none absolute inset-0 z-0 rounded",
+                "pointer-events-none absolute inset-0 z-0 rounded-sm",
                 flashDirection === "up" ? "so4-flash-up-overlay" : "so4-flash-down-overlay",
               )}
             />
@@ -290,8 +282,16 @@ function SpreadRow({
 // ── main component ────────────────────────────────────────────────────────────
 
 export function DepthLadder({ symbol, compact = false }: Props) {
+  const rootRef = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(true)
+  useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") return
+    const observer = new IntersectionObserver(([entry]) => setVisible(entry?.isIntersecting ?? true))
+    if (rootRef.current) observer.observe(rootRef.current)
+    return () => observer.disconnect()
+  }, [])
   const { bids, asks, spread, spreadPct, midPrice, status, isLoading } =
-    useOrderBook(symbol)
+    useOrderBook(visible ? symbol : undefined)
   const { trades } = useRecentTrades(symbol)
 
   // OB-054: Determine reference price — prefer last trade, fall back to mid price
@@ -306,36 +306,37 @@ export function DepthLadder({ symbol, compact = false }: Props) {
 
   return (
     <div
+      ref={rootRef}
       role="table"
       aria-label={`${symbol ?? "Market"} order-book depth ladder`}
-      className="flex h-full w-full flex-col overflow-hidden text-xs"
+      className="so4-density-orderbook flex h-full w-full flex-col overflow-hidden text-xs"
     >
       {/* ── Panel header ──────────────────────────────────────────────── */}
       <div className="flex items-center justify-between border-b border-border px-3 py-1.5 bg-muted/20">
-        <span className="font-mono text-[11px] text-muted-foreground">{/* ds-allow: dense header font size */}
+        <span className="font-mono text-11 text-muted-foreground">
           {symbol ?? "Market"} Depth
         </span>
         <div className="flex items-center gap-2">
           {status === "connected" && (
-            <span className="inline-flex items-center gap-1 font-mono text-[10px] text-green-500">{/* ds-allow: status font size */}
+            <span className="inline-flex items-center gap-1 font-mono text-10 text-green-500">
               <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
               Live
             </span>
           )}
           {status === "connecting" && (
-            <span className="inline-flex items-center gap-1 font-mono text-[10px] text-amber-500">{/* ds-allow: status font size */}
+            <span className="inline-flex items-center gap-1 font-mono text-10 text-amber-500">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
               Connecting…
             </span>
           )}
           {status === "polling" && (
-            <span className="inline-flex items-center gap-1 font-mono text-[10px] text-amber-500">{/* ds-allow: status font size */}
+            <span className="inline-flex items-center gap-1 font-mono text-10 text-amber-500">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
               Polling (Fallback)
             </span>
           )}
           {(status === "disconnected" || status === "error") && (
-            <span className="inline-flex items-center gap-1 font-mono text-[10px] text-destructive">{/* ds-allow: status font size */}
+            <span className="inline-flex items-center gap-1 font-mono text-10 text-destructive">
               <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
               Disconnected
             </span>
@@ -353,7 +354,7 @@ export function DepthLadder({ symbol, compact = false }: Props) {
           {Array.from({ length: 14 }).map((_, i) => (
             <div
               key={i}
-              className="h-[22px] rounded animate-pulse bg-muted/40"
+              className="h-[22px] rounded-sm animate-pulse bg-muted/40"
             />
           ))}
         </div>
@@ -429,13 +430,13 @@ export function DepthLadder({ symbol, compact = false }: Props) {
 
       {/* One-sided: only asks ─────────────────────────────────────────── */}
       {!isEmpty && bids.length === 0 && (
-        <p className="px-3 pb-1 text-[10px] text-muted-foreground">{/* ds-allow: dense footer font size */}
+        <p className="px-3 pb-1 text-10 text-muted-foreground">
           No bids available.
         </p>
       )}
       {/* One-sided: only bids ─────────────────────────────────────────── */}
       {!isEmpty && asks.length === 0 && (
-        <p className="px-3 pt-1 text-[10px] text-muted-foreground">{/* ds-allow: dense footer font size */}
+        <p className="px-3 pt-1 text-10 text-muted-foreground">
           No asks available.
         </p>
       )}

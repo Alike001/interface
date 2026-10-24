@@ -41,8 +41,15 @@ type ChartLine = {
 type CrosshairEvent = Parameters<Parameters<IChartApi["subscribeCrosshairMove"]>[0]>[0]
 
 type Props = {
+  /** Index-token address the chart data is fetched for. */
   symbol: string
   period: string
+  /**
+   * Human-readable market name (e.g. "BTC/USD") used for every label a person
+   * reads or hears. Falls back to `symbol`, which on-chain is a raw contract
+   * address — unusable as an accessible name.
+   */
+  marketLabel?: string
 }
 
 type ChartSummary = {
@@ -101,7 +108,7 @@ function toChartBar(bar: OhlcBar): CandlestickData<UTCTimestamp> {
   }
 }
 
-export function TVChartContainer({ symbol, period }: Props) {
+export function TVChartContainer({ symbol, period, marketLabel }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null)
@@ -146,7 +153,10 @@ export function TVChartContainer({ symbol, period }: Props) {
   const isNoHistory = !isLoading && !hasData && !isError && !isStale
   const isFailed = isError && !hasData
 
-  const summary = useMemo(() => getChartSummary(candles, liveBar, symbol, period), [candles, liveBar, symbol, period])
+  // Everything a person reads or hears uses the market name; `symbol` stays
+  // the fetch key.
+  const label = marketLabel ?? symbol
+  const summary = useMemo(() => getChartSummary(candles, liveBar, label, period), [candles, liveBar, label, period])
   const tableRows = useMemo(() => getRepresentativeRows(candles), [candles])
   const legendBar = crosshairBar ?? liveBar ?? candles.at(-1) ?? null
 
@@ -368,20 +378,20 @@ export function TVChartContainer({ symbol, period }: Props) {
     const now = Date.now()
     if (now - lastAnnounceRef.current < THROTTLE_MS) return
     lastAnnounceRef.current = now
-    announcer.announce(`${symbol} ${summary.latestPrice}`)
-  }, [liveBar, summary, symbol, announcer])
+    announcer.announce(`${label} ${summary.latestPrice}`)
+  }, [liveBar, summary, label, announcer])
 
   return (
     <div className="relative flex h-full w-full flex-col">
       {/* ═══ Venue & Data Source Metadata Badge ═══════════════════════════════ */}
       <div className="flex items-center justify-between border-b border-border bg-muted/20 px-3 py-1 text-xs text-muted-foreground">
-        <div className="flex items-center gap-1.5 font-mono text-[11px]">
+        <div className="flex items-center gap-1.5 font-mono text-11">
           <span className="text-muted-foreground/70">Data Source:</span>
-          <span className="rounded bg-muted px-1.5 py-0.5 font-medium text-foreground">
+          <span className="rounded-sm bg-muted px-1.5 py-0.5 font-medium text-foreground">
             {sourceType === "oracle_reference" ? `Reference Price (${venueName})` : `Execution Fills (${venueName})`}
           </span>
         </div>
-        <div className="flex items-center gap-3 font-mono text-[10px] uppercase text-muted-foreground/60">
+        <div className="flex items-center gap-3 font-mono text-10 uppercase text-muted-foreground/60">
           {legendBar && (
             <dl className="flex items-center gap-2 normal-case" aria-label="Candle values" data-testid="ohlc-legend">
               {(["open", "high", "low", "close"] as const).map((key) => (
@@ -410,17 +420,17 @@ export function TVChartContainer({ symbol, period }: Props) {
           <div
             className="absolute inset-0 z-10 flex flex-col gap-1 p-2 bg-background/50 backdrop-blur-[1px]"
             role="status"
-            aria-label={`Loading ${period} chart data for ${symbol}…`}
+            aria-label={`Loading ${period} chart data for ${label}…`}
           >
             <Skeleton className="h-full w-full rounded-none opacity-50" />
-            <VisuallyHidden>Loading {period} chart data for {symbol}…</VisuallyHidden>
+            <VisuallyHidden>Loading {period} chart data for {label}…</VisuallyHidden>
           </div>
         )}
 
         {/* Stale / updating timeframe indicator */}
         {isStale && !isLoading && (
           <div
-            className="absolute top-2 right-2 z-20 flex items-center gap-1.5 rounded bg-background/80 px-2.5 py-1 text-xs text-muted-foreground backdrop-blur border border-border"
+            className="absolute top-2 right-2 z-20 flex items-center gap-1.5 rounded-sm bg-background/80 px-2.5 py-1 text-xs text-muted-foreground backdrop-blur border border-border"
             role="status"
           >
             <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
@@ -432,7 +442,7 @@ export function TVChartContainer({ symbol, period }: Props) {
         {isNoHistory && (
           <div role="status" className="flex h-full flex-col items-center justify-center gap-3 text-center px-4 py-8">
             <p className="text-xs text-muted-foreground">
-              No trading history available for {symbol}
+              No trading history available for {label}
             </p>
             <p className="text-xs text-muted-foreground/60">
               This market may be new. Check back once trading begins.
@@ -452,7 +462,7 @@ export function TVChartContainer({ symbol, period }: Props) {
             <button
               onClick={() => void refetch()}
               className="mt-2 px-3 py-1 text-xs font-medium rounded border border-border hover:border-foreground transition-colors"
-              aria-label={`Retry loading chart for ${symbol}`}
+              aria-label={`Retry loading chart for ${label}`}
             >
               Retry
             </button>
@@ -471,7 +481,7 @@ export function TVChartContainer({ symbol, period }: Props) {
             <button
               onClick={() => void refetch()}
               className="mt-2 px-3 py-1 text-xs font-medium rounded border border-border hover:border-foreground transition-colors pointer-events-auto"
-              aria-label={`Retry updating chart for ${symbol}`}
+              aria-label={`Retry updating chart for ${label}`}
             >
               Refresh Now
             </button>
@@ -479,12 +489,16 @@ export function TVChartContainer({ symbol, period }: Props) {
         )}
 
         {/* Lightweight Charts canvas — hidden from AT; the VisuallyHidden summary replaces it */}
+        {/* The canvas is pannable and zoomable, so `role="img"` made it an
+            interactive element inside a non-interactive one (axe
+            nested-interactive). A named region keeps it findable without
+            claiming the content is static. */}
         <div
           ref={containerRef}
           className={cn("h-full w-full transition-opacity duration-base", isStale && "opacity-60")}
           style={{ touchAction: "none" }}
-          role="img"
-          aria-label={`Price chart for ${symbol}`}
+          role="region"
+          aria-label={`Price chart for ${label}`}
           aria-describedby="chart-desc"
           aria-hidden={isNoHistory || isFailed}
         />
@@ -500,7 +514,7 @@ export function TVChartContainer({ symbol, period }: Props) {
             aria-expanded={showTable}
             aria-controls="ohlc-data-table"
           >
-            <span className="font-medium">{symbol} OHLC Data</span>
+            <span className="font-medium">{label} OHLC Data</span>
             <span aria-hidden="true">{showTable ? "▲ Hide" : "▼ Show"}</span>
           </button>
 

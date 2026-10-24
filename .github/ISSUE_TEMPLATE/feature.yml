@@ -1,0 +1,19 @@
+name: Feature request
+description: Propose a focused improvement to the interface
+title: "[Feature]: "
+labels: ["type:feature"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and user outcome
+      description: What user problem does this solve, and how will success be measured?
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Proposed scope
+      description: Describe the smallest implementation and any alternatives considered.
+    validations:
+      required: true

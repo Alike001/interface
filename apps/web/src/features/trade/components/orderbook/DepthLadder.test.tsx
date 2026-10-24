@@ -428,7 +428,24 @@ describe("DepthLadder", () => {
     })
   })
 
-  describe("price-tick flash animation (#873)", () => {
+      it("sets a bounded width and animates depth changes smoothly", () => {
+      const { container } = render(<DepthLadder symbol="TWBTC" />)
+
+      const depthBars = Array.from(container.querySelectorAll("[aria-hidden=\"true\"]"))
+        .filter((element) => element.className.toString().includes("transition-[width]"))
+
+      expect(depthBars).toHaveLength(4)
+      expect(depthBars.map((bar) => (bar as HTMLElement).style.width)).toEqual([
+        "40%",
+        "100%",
+        "50%",
+        "100%",
+      ])
+      depthBars.forEach((bar) => {
+        expect(bar).toHaveClass("transition-[width]")
+      })
+    })
+describe("price-tick flash animation (#873)", () => {
     it("renders flash-up overlay when row size increases", () => {
       const { rerender, container } = render(<DepthLadder symbol="TWBTC" />)
 

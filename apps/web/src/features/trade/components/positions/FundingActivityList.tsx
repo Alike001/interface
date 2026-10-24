@@ -27,15 +27,9 @@ import type { FeeClaim } from "@/lib/graphql/types"
 import type { Column } from "@workspace/ui/components/data-table"
 import { useWalletStore } from "@/features/wallet/store/wallet-store"
 import { indexerQueryKeys } from "@/lib/graphql/query-keys"
+import { RelativeTime } from "@/shared/components/RelativeTime"
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-function formatTimestamp(ts: Date | string | number): string {
-  return new Date(ts).toLocaleString(undefined, {
-    dateStyle: "short",
-    timeStyle: "short",
-  })
-}
 
 /**
  * Parse the raw `amount` string from the indexer into a JS number.
@@ -192,7 +186,7 @@ export function FundingActivityList({ feeType = null }: Props) {
       id: "timestamp",
       header: "Time",
       accessor: (row) => (
-        <span className="text-muted-foreground">{formatTimestamp(row.timestamp)}</span>
+        <RelativeTime className="text-muted-foreground" value={row.timestamp} />
       ),
     },
     {

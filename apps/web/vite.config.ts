@@ -63,7 +63,7 @@ export default defineConfig(({ mode }) => {
       tailwindcss(),
       tanstackStart(),
       viteReact(),
-      bundleSizeGuard(2000), // Budget: 2000 KB per chunk max
+      bundleSizeGuard(1500), // Budget: 1500 KB per chunk max
     ],
     // stellar-wallets-kit is ESM but its Freighter module imports named exports
     // from @stellar/freighter-api which ships as CJS. Node's native ESM loader

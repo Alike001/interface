@@ -17,10 +17,14 @@ import { CircuitBreakerBanner } from "./CircuitBreakerBanner"
 import { PanelErrorBoundary } from "./PanelErrorBoundary"
 import { MobileTradeNav,  mobileViewClassName } from "./MobileTradeNav"
 import { OrderBookPanel } from "./orderbook/OrderBookPanel"
-import type {MobileTradeView} from "./MobileTradeNav";
+import type {MobileTradeView} from "./MobileTradeNav"
 import { saveReferralCode } from "@/lib/contracts"
 import { useAppFocusRecovery } from "@/shared/hooks/useAppFocusRecovery"
 import { useWalletStore } from "@/features/wallet/store/wallet-store"
+import { useTheme } from "@/ui/theme-provider"
+import { useWorkspaceShortcuts } from "../hooks/useWorkspaceShortcuts"
+import { CommandPalette } from "./CommandPalette"
+import { KeyboardShortcutsHelp } from "./KeyboardShortcutsHelp"
 
 const tradeRoute = getRouteApi("/trade")
 
@@ -79,6 +83,21 @@ export function TradePage() {
 
   // ── Mobile chart/book/trade navigation (OB-037) ─────────────────────────
   const [mobileView, setMobileView] = useState<MobileTradeView>("chart")
+
+  const { setTheme, resolvedTheme } = useTheme()
+  const toggleTheme = () => setTheme(resolvedTheme === "dark" ? "light" : "dark")
+
+  // Register workspace navigation shortcuts (Ctrl/Cmd+1..4, M) and the
+  // command palette / shortcuts-help triggers (⌘K, ?).
+  useWorkspaceShortcuts({
+    onFocusMarketSearch: () => {
+      // Focuses the market selector once a ref is exposed by the chart.
+    },
+    onFocusChart: () => setMobileView("chart"),
+    onFocusBook: () => setMobileView("book"),
+    onFocusTrade: () => setMobileView("trade"),
+    onFocusPositions: () => setMobileView("positions"),
+  })
 
   return (
     <AppShell
@@ -214,6 +233,18 @@ export function TradePage() {
 
       {/* Show mobile/tablet nav only on md and below; tablet shows chart+book + trade/positions tabs */}
       <MobileTradeNav active={mobileView} onChange={setMobileView} className="md:hidden" />
+
+      <CommandPalette
+        onFocusMarketSearch={() => {
+          // Market selector focus requires a ref exposed by the chart.
+        }}
+        onFocusChart={() => setMobileView("chart")}
+        onFocusBook={() => setMobileView("book")}
+        onFocusTrade={() => setMobileView("trade")}
+        onFocusPositions={() => setMobileView("positions")}
+        onToggleTheme={toggleTheme}
+      />
+      <KeyboardShortcutsHelp />
     </AppShell>
   )
 }

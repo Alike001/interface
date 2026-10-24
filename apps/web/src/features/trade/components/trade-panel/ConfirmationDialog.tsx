@@ -354,6 +354,17 @@ export function ConfirmationDialog({
         <div className="min-w-0 space-y-1.5 text-sm">
           {!tradeFlags.isSwap && (
             <>
+              <div className="rounded border border-border/60 bg-muted/20 p-2" aria-label="Position size change">
+                <p className="mb-1 text-xs font-medium">Position size change</p>
+                <div className="grid grid-cols-[1fr_auto_auto] gap-x-3 gap-y-1 text-xs">
+                  <span className="text-muted-foreground">Before</span>
+                  <span className="text-muted-foreground">After</span>
+                  <span className="text-muted-foreground">Change</span>
+                  <span className="font-mono">{formatUsd(0)}</span>
+                  <span className="font-mono">{formatUsd(sizeUsd)}</span>
+                  <span className="font-mono text-success">+{formatUsd(sizeUsd)}</span>
+                </div>
+              </div>
               <Row label="Size" value={formatUsd(sizeUsd)} />
               {maxPositionError && (
                 <p className="break-words text-xs text-red-500">{maxPositionError}</p>
@@ -397,7 +408,7 @@ export function ConfirmationDialog({
                 </p>
               )}
               {sidecarOrders.length > 0 && (
-                <div className="min-w-0 rounded border border-border p-2">
+                <div className="min-w-0 rounded-sm border border-border p-2">
                   <p className="mb-1 text-xs font-medium">
                     TP/SL sidecar orders
                   </p>

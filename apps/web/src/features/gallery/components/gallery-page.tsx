@@ -212,7 +212,17 @@ export function GalleryPage() {
 
       <Section title="Slider">
         <div className="max-w-sm">
+          {/* Base UI's slider control is an <input type="range"> inside the
+              thumb, which a <label htmlFor> cannot target. Name it with
+              `aria-labelledby` pointing at the visible text instead. */}
+          <span
+            id="gallery-slider-label"
+            className="mb-2 block text-13 text-foreground"
+          >
+            Example value
+          </span>
           <Slider
+            aria-labelledby="gallery-slider-label"
             value={sliderValue}
             onValueChange={(value) =>
               setSliderValue(Array.isArray(value) ? [...value] : [value])
@@ -285,6 +295,8 @@ export function GalleryPage() {
               Vertical — edge shadows follow scroll position
             </p>
             <ScrollArea
+              focusable
+              aria-label="Vertical scroll example"
               className="max-h-40 rounded-md border border-border"
               tone="card"
             >
@@ -304,6 +316,8 @@ export function GalleryPage() {
             </p>
             <ScrollArea
               orientation="horizontal"
+              focusable
+              aria-label="Horizontal scroll example"
               className="rounded-md border border-border"
               tone="card"
             >
@@ -363,9 +377,10 @@ export function GalleryPage() {
 
       <Section title="Tooltip">
         <Tooltip>
-          <TooltipTrigger>
-            <Button variant="outline">Hover me</Button>
-          </TooltipTrigger>
+          {/* Base UI renders its own <button> for the trigger. A custom
+              element must go through `render`, or the result is a <button>
+              nested inside a <button> (hydration error + nested-interactive). */}
+          <TooltipTrigger render={<Button variant="outline">Hover me</Button>} />
           <TooltipContent>A tooltip, positioned automatically.</TooltipContent>
         </Tooltip>
       </Section>
@@ -633,7 +648,12 @@ export function GalleryPage() {
               {PROGRESS_TONES.map((tone) => (
                 <div key={`${size}-${tone}`} className="mb-3 space-y-1">
                   <span className="text-10 text-text-tertiary">{tone}</span>
-                  <ProgressIndicator value={65} size={size} tone={tone} />
+                  <ProgressIndicator
+                    value={65}
+                    size={size}
+                    tone={tone}
+                    label={`Progress example — ${size}, ${tone}`}
+                  />
                 </div>
               ))}
             </div>

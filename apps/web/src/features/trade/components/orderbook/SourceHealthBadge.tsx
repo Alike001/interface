@@ -24,7 +24,7 @@ export function SourceHealthBadge({ health, className }: Props) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 font-mono text-[10px]", // ds-allow: consistent with existing status badges
+        "inline-flex items-center gap-1 font-mono text-10",
         badgeConfig.textColor,
         className
       )}

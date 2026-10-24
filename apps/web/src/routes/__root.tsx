@@ -5,10 +5,15 @@ import {
   Scripts,
   createRootRoute,
 } from "@tanstack/react-router"
+import { useEffect } from "react"
+import { installWebVitalsReporting } from "@/features/observability/lib/web-vitals"
 import { ToastProvider } from "@workspace/ui/components/toast"
 import { TooltipProvider } from "@workspace/ui/components/tooltip"
 import { DensityProvider } from "@workspace/ui/components/density-provider"
 import appCss from "@workspace/ui/globals.css?url"
+import geistLatinFont from "@fontsource-variable/geist/files/geist-latin-wght-normal.woff2?url"
+import { ENV } from "../app/config/env"
+import { buildResourceHints } from "../shared/lib/resource-hints"
 import { AppProviders } from "../app/providers"
 import { SITE_NAME, SITE_URL, SOCIAL_URLS } from "../shared/lib/site-identity"
 import { RouteAnnouncer } from "../shared/components/RouteAnnouncer"
@@ -23,7 +28,7 @@ const DESCRIPTION =
 // OG/Twitter image alt) are fixed now since they're the page's actual SEO
 // surface; DESCRIPTION's dash is a genuine sentence break, not a list
 // separator, and stays.
-const OG_IMAGE = `${SITE_URL}/og-image.svg`
+const OG_IMAGE = `${SITE_URL}/og-image.webp`
 const TWITTER_HANDLE = "@so4market"
 
 // JSON-LD structured data (WebApplication + FinancialService)
@@ -100,7 +105,7 @@ export const Route = createRootRoute({
       { property: "og:image", content: OG_IMAGE },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
-      { property: "og:image:type", content: "image/svg+xml" },
+      { property: "og:image:type", content: "image/webp" },
       {
         property: "og:image:alt",
         content:
@@ -130,9 +135,21 @@ export const Route = createRootRoute({
       // ── Canonical ───────────────────────────────────────────────
       { rel: "canonical", href: SITE_URL },
 
-      // ── DNS Prefetch ────────────────────────────────────────────
-      { rel: "dns-prefetch", href: "//indexer.example.com" },
-      { rel: "dns-prefetch", href: "//rpc.example.com" },
+      // ── Connection hints (#929) ─────────────────────────────────
+      ...buildResourceHints({
+        rpcUrl: ENV.RPC_URL,
+        horizonUrl: ENV.HORIZON_URL,
+        pythHermesUrl: ENV.PYTH_HERMES_URL,
+      }),
+
+      // ── Fonts (#930): only the Geist face used above the fold ──
+      {
+        rel: "preload",
+        href: geistLatinFont,
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
+      },
 
       // ── App CSS ─────────────────────────────────────────────────
       { rel: "stylesheet", href: appCss },
@@ -158,6 +175,7 @@ export const Route = createRootRoute({
 // Sits above every route so the post-navigation focus/announcement handoff
 // (DS-078) is installed exactly once, inside router context.
 function RootComponent() {
+  useEffect(() => installWebVitalsReporting(), [])
   return (
     <>
       <RouteAnnouncer />

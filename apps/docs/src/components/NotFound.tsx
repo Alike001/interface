@@ -89,7 +89,7 @@ export function NotFoundContent({ requestedPath }: { requestedPath?: string }) {
     <div className="mx-auto max-w-3xl px-4 py-10 md:px-6">
       <h1 className="text-3xl font-semibold text-foreground">Page not found</h1>
       <p className="mt-3 text-sm text-text-secondary">
-        No page at <code className="rounded bg-surface-sunken px-1 py-0.5 font-mono text-xs">{path}</code>. Try one of these instead.
+        No page at <code className="rounded-sm bg-surface-sunken px-1 py-0.5 font-mono text-xs">{path}</code>. Try one of these instead.
       </p>
 
       {suggestions.length > 0 ? (

@@ -143,24 +143,24 @@ export function DepthChart({ symbol, bids, asks, isLoading, status }: Props) {
     <div className="relative flex h-full w-full flex-col">
       {/* ═══ Header with status ════════════════════════════════════════════════ */}
       <div className="flex items-center justify-between border-b border-border px-3 py-1.5 bg-muted/20">
-        <span className="font-mono text-[11px] text-muted-foreground">{/* ds-allow: status font size */}
+        <span className="font-mono text-11 text-muted-foreground">
           {symbol ?? "Market"} Cumulative Depth
         </span>
         <div className="flex items-center gap-2">
           {status === "connected" && (
-            <span className="inline-flex items-center gap-1 font-mono text-[10px] text-green-500">{/* ds-allow: status font size */}
+            <span className="inline-flex items-center gap-1 font-mono text-10 text-green-500">
               <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
               Live
             </span>
           )}
           {status === "connecting" && (
-            <span className="inline-flex items-center gap-1 font-mono text-[10px] text-amber-500">{/* ds-allow: status font size */}
+            <span className="inline-flex items-center gap-1 font-mono text-10 text-amber-500">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
               Connecting…
             </span>
           )}
           {(status === "disconnected" || status === "error") && (
-            <span className="inline-flex items-center gap-1 font-mono text-[10px] text-destructive">{/* ds-allow: status font size */}
+            <span className="inline-flex items-center gap-1 font-mono text-10 text-destructive">
               <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
               Disconnected
             </span>

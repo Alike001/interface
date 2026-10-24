@@ -1,6 +1,7 @@
 import { useRef } from "react"
 import { cn } from "@workspace/ui/lib/utils"
 import { useChartPreferencesStore } from "../../store/chart-preferences-store"
+import { useMarkets } from "../../hooks/useMarkets"
 import { ChartHeader } from "./ChartHeader"
 import { TVChartContainer } from "./TVChartContainer"
 import type { Period } from "../../store/chart-preferences-store"
@@ -15,6 +16,10 @@ type Props = {
 export function TVChart({ symbol, onSelectToken }: Props) {
   const period = useChartPreferencesStore((s) => s.period)
   const setPeriod = useChartPreferencesStore((s) => s.setPeriod)
+  const { markets } = useMarkets()
+  // `symbol` is the index token's contract address. Resolve the market's
+  // display name so labels read "BTC/USD" rather than the raw address.
+  const marketLabel = markets.find((m) => m.indexTokenAddress === symbol)?.name
   const buttonRefs = useRef<Map<Period, HTMLButtonElement>>(new Map())
 
   // When the period changes, persist preference and invalidate the candles cache
@@ -80,7 +85,7 @@ export function TVChart({ symbol, onSelectToken }: Props) {
               transform: `translateX(${indicatorStyle.left}px)`,
               width: indicatorStyle.width,
             }}
-            className="absolute top-1.5 bottom-1.5 left-0 rounded bg-primary transition-[transform,width] duration-base ease-spring-smooth motion-reduce:transition-none pointer-events-none"
+            className="absolute top-1.5 bottom-1.5 left-0 rounded-sm bg-primary transition-[transform,width] duration-base ease-spring-smooth motion-reduce:transition-none pointer-events-none"
           />
         )}
         {PERIODS.map((p) => (
@@ -95,7 +100,7 @@ export function TVChart({ symbol, onSelectToken }: Props) {
             aria-label={`${p} timeframe`}
             title={`Switch to ${p} chart (${p === period ? "current" : ""})`}
             className={cn(
-              "relative z-10 rounded px-2 py-0.5 font-mono text-xs transition-colors duration-fast ease-spring-snappy",
+              "relative z-10 rounded-sm px-2 py-0.5 font-mono text-xs transition-colors duration-fast ease-spring-snappy",
               "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring",
               period === p
                 ? "text-primary-foreground font-semibold"
@@ -110,7 +115,7 @@ export function TVChart({ symbol, onSelectToken }: Props) {
       {/* Chart */}
       <div className="min-h-0 flex-1">
         {symbol ? (
-          <TVChartContainer symbol={symbol} period={period} />
+          <TVChartContainer symbol={symbol} period={period} marketLabel={marketLabel} />
         ) : (
           <div role="status" className="flex h-full items-center justify-center text-xs text-muted-foreground">
             Select a market
